@@ -8,6 +8,8 @@
 <style>
 .emergency-pulse{box-shadow:0 0 0 0 rgba(255,45,85,.7);animation:pulse-red 2s infinite}
 @keyframes pulse-red{0%{transform:scale(.95);box-shadow:0 0 0 0 rgba(255,45,85,.7)}70%{transform:scale(1);box-shadow:0 0 0 10px rgba(255,45,85,0)}100%{transform:scale(.95);box-shadow:0 0 0 0 rgba(255,45,85,0)}}
+.notif-slide{animation:slideIn 0.4s ease-out}
+@keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body class="bg-background-dark font-display text-slate-100 min-h-screen">
@@ -18,6 +20,23 @@
     <h2 class="text-lg font-bold">Patient Central</h2>
   </div>
   <div class="flex items-center gap-3">
+    <!-- ✅ NEW: Notification Bell -->
+    <div class="relative">
+      <button onclick="toggleNotifications()" class="relative p-2 rounded-xl hover:bg-slate-800 transition-colors">
+        <span class="material-symbols-outlined text-slate-300 text-2xl">notifications</span>
+        <span id="notif_badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs font-black rounded-full w-5 h-5 flex items-center justify-center">0</span>
+      </button>
+      <!-- Notification Dropdown -->
+      <div id="notif_dropdown" class="hidden absolute right-0 top-12 w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+          <h4 class="font-bold text-sm text-white">🔔 Health Notifications</h4>
+          <button onclick="markAllRead()" class="text-primary text-xs hover:underline">Mark all read</button>
+        </div>
+        <div id="notif_list" class="max-h-80 overflow-y-auto">
+          <p class="text-slate-500 text-sm text-center py-6">No notifications yet</p>
+        </div>
+      </div>
+    </div>
     <span class="text-slate-400 text-sm" id="pat_dash_name">Loading...</span>
     <button onclick="logout()" class="text-red-400 hover:text-red-300 text-xs border border-red-400/30 px-3 py-1 rounded-lg">Logout</button>
   </div>
@@ -37,6 +56,17 @@
         <span class="px-3 py-1 rounded-full text-xs font-bold uppercase" id="risk_badge">Checking...</span>
       </div>
     </div>
+
+    <!-- ✅ NEW: Latest Notification Card in sidebar -->
+    <div id="latest_notif_card" class="hidden bg-blue-500/10 border border-blue-500/30 p-4 rounded-2xl">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="material-symbols-outlined text-blue-400 text-lg">notifications_active</span>
+        <p class="text-blue-400 font-bold text-xs uppercase tracking-widest">Latest Update</p>
+      </div>
+      <p class="text-white text-sm" id="latest_notif_text">Loading...</p>
+      <p class="text-slate-500 text-xs mt-2" id="latest_notif_time"></p>
+    </div>
+
     <nav class="flex flex-col gap-1">
       <a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 text-primary font-medium" href="#"><span class="material-symbols-outlined">dashboard</span> Overview</a>
       <a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors" href="#"><span class="material-symbols-outlined">history</span> History</a>
@@ -109,11 +139,91 @@
 </main>
 </div>
 <script>
+let allNotifications = [];
+
 function handleEmergency() {
   const user = getUser();
   localStorage.setItem('current_alert', JSON.stringify({patient_name: user?.full_name, patient_id: user?.jeevan_id}));
   go.alert();
 }
+
+// ✅ NEW: Toggle notification dropdown
+function toggleNotifications() {
+  const dd = document.getElementById('notif_dropdown');
+  dd.classList.toggle('hidden');
+  if (!dd.classList.contains('hidden')) loadNotifications();
+}
+
+// ✅ NEW: Load notifications from Supabase
+async function loadNotifications() {
+  const user = getUser();
+  if (!user) return;
+  try {
+    const notifs = await sb.get('notifications', `patient_id=eq.${user.jeevan_id}&order=created_at.desc&limit=10`);
+    allNotifications = notifs || [];
+    renderNotifications();
+  } catch(e) { console.log('Notif error:', e); }
+}
+
+function renderNotifications() {
+  const list = document.getElementById('notif_list');
+  const badge = document.getElementById('notif_badge');
+  const unread = allNotifications.filter(n => !n.is_read).length;
+
+  if (unread > 0) {
+    badge.textContent = unread;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+
+  if (allNotifications.length === 0) {
+    list.innerHTML = '<p class="text-slate-500 text-sm text-center py-6">No notifications yet</p>';
+    return;
+  }
+
+  const riskColors = {CRITICAL:'text-red-400',HIGH:'text-orange-400',MEDIUM:'text-yellow-400',LOW:'text-green-400'};
+
+  list.innerHTML = allNotifications.map(n => `
+    <div class="notif-slide px-4 py-3 border-b border-slate-800 ${n.is_read ? 'opacity-60' : 'bg-blue-500/5'} hover:bg-slate-800/50 transition-colors">
+      <div class="flex items-start gap-3">
+        <span class="material-symbols-outlined ${riskColors[n.risk_level]||'text-blue-400'} text-lg mt-0.5">health_and_safety</span>
+        <div class="flex-1">
+          <p class="text-white text-xs leading-relaxed">${n.message}</p>
+          <p class="text-slate-500 text-xs mt-1">${new Date(n.created_at).toLocaleString('en-IN')}</p>
+        </div>
+        ${!n.is_read ? '<div class="w-2 h-2 bg-blue-400 rounded-full mt-1 flex-shrink-0"></div>' : ''}
+      </div>
+    </div>`).join('');
+
+  // Show latest in sidebar
+  if (allNotifications.length > 0) {
+    const latest = allNotifications[0];
+    document.getElementById('latest_notif_text').textContent = latest.message;
+    document.getElementById('latest_notif_time').textContent = new Date(latest.created_at).toLocaleString('en-IN');
+    document.getElementById('latest_notif_card').classList.remove('hidden');
+  }
+}
+
+// ✅ NEW: Mark all notifications as read
+async function markAllRead() {
+  const user = getUser();
+  if (!user) return;
+  try {
+    await sb.patch('notifications', `patient_id=eq.${user.jeevan_id}&is_read=eq.false`, {is_read: true});
+    allNotifications = allNotifications.map(n => ({...n, is_read: true}));
+    renderNotifications();
+  } catch(e) { console.log('Mark read error:', e); }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  const dropdown = document.getElementById('notif_dropdown');
+  const bell = dropdown?.previousElementSibling;
+  if (dropdown && !dropdown.contains(e.target) && !bell?.contains(e.target)) {
+    dropdown.classList.add('hidden');
+  }
+});
 
 async function loadPatientData() {
   const user = getUser();
@@ -143,6 +253,9 @@ async function loadPatientData() {
       updateRiskUI(t.risk_score, t.risk_level);
     }
   } catch(e) { console.log('Could not load tests:', e); }
+
+  // ✅ Load notifications on page load
+  await loadNotifications();
 }
 
 function updateRiskUI(score, level) {
@@ -158,217 +271,29 @@ function updateRiskUI(score, level) {
 
 document.addEventListener('DOMContentLoaded', loadPatientData);
 
-// ════════════════════════════════════════════
-//   JEEVAN AI — SHARED API + NAVIGATION
-//   Paste this block inside <script> tags
-//   at the bottom of EVERY HTML page
-// ════════════════════════════════════════════
-
 const SUPABASE_URL = "https://dsvbnrhsawfoiqwjnskb.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzdmJucmhzYXdmb2lxd2puc2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MTE0MTYsImV4cCI6MjA4ODk4NzQxNn0.JE7I1MUp51ubUunPlsgRr2V8Rq-7LLQ6Qp5gw05zl4w";   // ← Settings → API Keys → anon public
-const GEMINI_KEY   = "AIzaSyC5LOL5e7Ic4Z5UGGIlMloh_4vA7MfxIrA"; // ← aistudio.google.com
-
-// ── PAGE PATHS ────────────────────────────
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzdmJucmhzYXdmb2lxd2puc2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MTE0MTYsImV4cCI6MjA4ODk4NzQxNn0.JE7I1MUp51ubUunPlsgRr2V8Rq-7LLQ6Qp5gw05zl4w";
+const GEMINI_KEY   = "AIzaSyC5LOL5e7Ic4Z5UGGIlMloh_4vA7MfxIrA";
 const PAGES = {
-  home:           '../jeevan_ai_advanced_front_page/code.html',
-  roleSelect:     '../enhanced_role_selection/code.html',
-  registerRole:   '../register_role_select/code.html',
-  patientReg:     '../patient_register_form/code.html',
-  ashaReg:        '../asha_registration_with_otp_field/code.html',
-  doctorReg:      '../doctor_register_form/code.html',
-  patientLogin:   '../patient_login/code.html',
-  ashaLogin:      '../asha_worker_login/code.html',
-  doctorLogin:    '../doctor_login_animated_refinement/code.html',
-  patientDash:    '../patient_dashboard_multilingual_toggles/code.html',
-  ashaDash:       '../asha_dashboard_multilingual_toggles/code.html',
-  doctorDash:     '../doctor_dashboard_multilingual_toggles/code.html',
-  success:        '../success_screen/code.html',
-  alert:          '../alert_screen/code.html',
+  home:'../jeevan_ai_advanced_front_page/code.html',roleSelect:'../enhanced_role_selection/code.html',
+  registerRole:'../register_role_select/code.html',patientReg:'../patient_register_form/code.html',
+  ashaReg:'../asha_registration_with_otp_field/code.html',doctorReg:'../doctor_register_form/code.html',
+  patientLogin:'../patient_login/code.html',ashaLogin:'../asha_worker_login/code.html',
+  doctorLogin:'../doctor_login_animated_refinement/code.html',
+  patientDash:'../patient_dashboard_multilingual_toggles/code.html',
+  ashaDash:'../asha_dashboard_multilingual_toggles/code.html',
+  doctorDash:'../doctor_dashboard_multilingual_toggles/code.html',
+  success:'../success_screen/code.html',alert:'../alert_screen/code.html',
 };
-
-// ── LOADING OVERLAY HTML (inject once) ───
-function injectLoader() {
-  if (document.getElementById('jeevan-loader')) return;
-  const el = document.createElement('div');
-  el.id = 'jeevan-loader';
-  el.innerHTML = `
-    <style>
-      #jeevan-loader {
-        display:none; position:fixed; inset:0;
-        background:rgba(2,8,24,0.97); z-index:99999;
-        flex-direction:column; align-items:center;
-        justify-content:center; gap:20px; font-family:'Public Sans',sans-serif;
-      }
-      #jeevan-loader .jl-title {
-        background:linear-gradient(to right,#F492F0,#2EF2E2);
-        -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-        font-size:24px; font-weight:900; letter-spacing:4px;
-      }
-      #jeevan-loader .jl-msg {
-        color:white; font-size:15px; font-weight:600; letter-spacing:2px;
-      }
-      #jeevan-loader .jl-dot { animation:jlBlink 1.5s infinite; }
-      #jeevan-loader .jl-dot:nth-child(2){animation-delay:.3s}
-      #jeevan-loader .jl-dot:nth-child(3){animation-delay:.6s}
-      #jeevan-loader .jl-track {
-        position:relative; width:220px; height:36px;
-        background:#1a1a1a; border-radius:18px; overflow:hidden;
-      }
-      #jeevan-loader .jl-fill {
-        position:absolute; top:3px; left:3px;
-        height:calc(100% - 6px); width:0%;
-        background:linear-gradient(90deg,#2EF2E2,#7B2FFF,#F492F0);
-        border-radius:15px;
-        animation:jlFill 2.2s ease-out forwards, jlHue 2.2s linear infinite;
-        box-shadow:0 0 12px rgba(46,242,226,.4);
-      }
-      #jeevan-loader .jl-sub {
-        color:rgba(255,255,255,.3); font-size:11px; letter-spacing:3px; text-transform:uppercase;
-      }
-      @keyframes jlBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
-      @keyframes jlFill{0%{width:0}30%{width:30%}70%{width:70%}100%{width:calc(100% - 6px)}}
-      @keyframes jlHue{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
-    </style>
-    <div class="jl-title">JEEVAN AI</div>
-    <div class="jl-msg" id="jl-msg">Loading<span class="jl-dot">.</span><span class="jl-dot">.</span><span class="jl-dot">.</span></div>
-    <div class="jl-track"><div class="jl-fill" id="jl-fill"></div></div>
-    <div class="jl-sub" id="jl-sub">NEURAL NETWORK</div>
-  `;
-  document.body.appendChild(el);
-}
-
-function showLoader(msg, sub, dest, delay) {
-  injectLoader();
-  document.getElementById('jl-msg').innerHTML = (msg||'Loading') +
-    '<span class="jl-dot">.</span><span class="jl-dot">.</span><span class="jl-dot">.</span>';
-  if (sub) document.getElementById('jl-sub').textContent = sub;
-  const fill = document.getElementById('jl-fill');
-  fill.style.animation = 'none'; fill.offsetHeight;
-  fill.style.animation = 'jlFill 2.2s ease-out forwards, jlHue 2.2s linear infinite';
-  document.getElementById('jeevan-loader').style.display = 'flex';
-  if (dest) setTimeout(() => { window.location.href = dest; }, delay || 2200);
-}
-
-// ── NAVIGATION HELPERS ────────────────────
-const go = {
-  home:        () => showLoader('Going Home',        'JEEVAN AI',            PAGES.home),
-  register:    () => showLoader('Loading Register',  'SELECT YOUR ROLE',     PAGES.roleSelect),
-  ashaReg:     () => showLoader('ASHA Registration', 'PREPARING FORM',       PAGES.ashaReg),
-  doctorReg:   () => showLoader('Doctor Portal',     'PREPARING FORM',       PAGES.doctorReg),
-  patientReg:  () => showLoader('Patient Portal',    'PREPARING FORM',       PAGES.patientReg),
-  ashaLogin:   () => showLoader('ASHA Login',        'AUTHENTICATING',       PAGES.ashaLogin),
-  doctorLogin: () => showLoader('Doctor Login',      'AUTHENTICATING',       PAGES.doctorLogin),
-  patientLogin:() => showLoader('Patient Login',     'AUTHENTICATING',       PAGES.patientLogin),
-  ashaDash:    () => showLoader('ASHA Dashboard',    'LOADING YOUR DATA',    PAGES.ashaDash),
-  doctorDash:  () => showLoader('Doctor Dashboard',  'LOADING YOUR DATA',    PAGES.doctorDash),
-  patientDash: () => showLoader('Patient Dashboard', 'LOADING YOUR DATA',    PAGES.patientDash),
-  success:     () => showLoader('Success!',          'SAVING YOUR PROFILE',  PAGES.success),
-  alert:       () => showLoader('EMERGENCY',         'ALERTING CONTACTS',    PAGES.alert),
-};
-
-// ── SESSION HELPERS ───────────────────────
-function getUser()    { try { return JSON.parse(localStorage.getItem('jeevan_user')); } catch(e) { return null; } }
-function setUser(u)   { localStorage.setItem('jeevan_user', JSON.stringify(u)); }
-function clearUser()  { localStorage.removeItem('jeevan_user'); }
-function logout()     { clearUser(); go.home(); }
-function generateId(role) {
-  const n = Math.floor(1000 + Math.random() * 9000);
-  return role==='patient'?`PAT-${n}`:role==='asha'?`ASH-${n}`:`DOC-${n}`;
-}
-
-// ── SUPABASE HELPERS ──────────────────────
-const sb = {
-  headers: () => ({
-    'Content-Type': 'application/json',
-    'apikey': SUPABASE_KEY,
-    'Authorization': `Bearer ${SUPABASE_KEY}`,
-    'Prefer': 'return=representation'
-  }),
-  post: async (table, body) => {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-      method:'POST', headers: sb.headers(), body: JSON.stringify(body)
-    });
-    return r.json();
-  },
-  get: async (table, query) => {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-    });
-    return r.json();
-  },
-  patch: async (table, filter, body) => {
-    await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
-      method:'PATCH', headers: sb.headers(), body: JSON.stringify(body)
-    });
-  }
-};
-
-// ── REGISTER FUNCTIONS ────────────────────
-async function registerPatient(d) {
-  const jeevan_id = generateId('patient');
-  await sb.post('patients', { jeevan_id, full_name:`${d.first_name} ${d.last_name}`,
-    phone:d.phone, age:parseInt(d.age)||0, gender:d.gender, village:d.village||'',
-    district:d.district||'', blood_group:d.blood_group||'', role:'patient',
-    password:d.password||'1234', risk_score:0, risk_level:'LOW' });
-  setUser({ jeevan_id, full_name:`${d.first_name} ${d.last_name}`, role:'patient' });
-  return jeevan_id;
-}
-
-async function registerAsha(d) {
-  const jeevan_id = generateId('asha');
-  await sb.post('asha_workers', { jeevan_id, full_name:d.full_name, phone:d.phone,
-    username:d.username||'', email:d.email||'', password:d.password||'1234',
-    village:d.village||'', district:d.district||'', otp_verified:false });
-  setUser({ jeevan_id, full_name:d.full_name, role:'asha' });
-  return jeevan_id;
-}
-
-async function registerDoctor(d) {
-  const jeevan_id = generateId('doctor');
-  await sb.post('doctors', { jeevan_id, full_name:d.full_name,
-    license_number:d.license_number||'', email:d.email||'',
-    specialization:d.specialization||'', hospital_name:d.hospital||'',
-    password:d.password||'1234' });
-  setUser({ jeevan_id, full_name:d.full_name, role:'doctor' });
-  return jeevan_id;
-}
-
-// ── LOGIN FUNCTION ────────────────────────
-async function loginUser(jeevan_id, password, role) {
-  const table = role==='patient'?'patients':role==='asha'?'asha_workers':'doctors';
-  const data = await sb.get(table, `jeevan_id=eq.${jeevan_id}&password=eq.${password}&select=*`);
-  if (data && data.length > 0) {
-    setUser({...data[0], role});
-    return { success:true, user:data[0] };
-  }
-  return { success:false };
-}
-
-// ── GEMINI AI RISK ────────────────────────
-async function calcRisk(v) {
-  const r = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
-    { method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ contents:[{ parts:[{ text:
-        `You are JEEVAN AI. Rural India patient vitals:
-BP:${v.bp_systolic}/${v.bp_diastolic} Sugar:${v.blood_sugar} O2:${v.oxygen_level}% Pulse:${v.pulse_rate} Temp:${v.temperature}F Age:${v.age} Symptoms:${v.symptoms||'none'}
-Reply ONLY valid JSON no markdown:
-{"crs":0-100,"risk_level":"LOW/MEDIUM/HIGH/CRITICAL","rvi":0.0,"advice_hindi":"2 lines","advice_english":"2 lines","see_doctor":true/false,"emergency":true/false}`
-      }]}]})
-    });
-  const data = await r.json();
-  const txt = data.candidates[0].content.parts[0].text.replace(/```json|```/g,'').trim();
-  return JSON.parse(txt);
-}
-
-// ── LIVE TIMESTAMP ────────────────────────
-function startClock(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const tick = () => { el.textContent = new Date().toISOString().replace('T',' // ').replace(/\.\d+Z/,' UTC'); };
-  tick(); setInterval(tick,1000);
-}
-
-// AUTO START CLOCK IF ELEMENT EXISTS
-document.addEventListener('DOMContentLoaded', () => startClock('timestamp'));
+function injectLoader(){if(document.getElementById('jeevan-loader'))return;const el=document.createElement('div');el.id='jeevan-loader';el.innerHTML=`<style>#jeevan-loader{display:none;position:fixed;inset:0;background:rgba(2,8,24,0.97);z-index:99999;flex-direction:column;align-items:center;justify-content:center;gap:20px;font-family:'Public Sans',sans-serif;}#jeevan-loader .jl-title{background:linear-gradient(to right,#F492F0,#2EF2E2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:24px;font-weight:900;letter-spacing:4px;}#jeevan-loader .jl-msg{color:white;font-size:15px;font-weight:600;letter-spacing:2px;}#jeevan-loader .jl-dot{animation:jlBlink 1.5s infinite;}#jeevan-loader .jl-dot:nth-child(2){animation-delay:.3s}#jeevan-loader .jl-dot:nth-child(3){animation-delay:.6s}#jeevan-loader .jl-track{position:relative;width:220px;height:36px;background:#1a1a1a;border-radius:18px;overflow:hidden;}#jeevan-loader .jl-fill{position:absolute;top:3px;left:3px;height:calc(100% - 6px);width:0%;background:linear-gradient(90deg,#2EF2E2,#7B2FFF,#F492F0);border-radius:15px;animation:jlFill 2.2s ease-out forwards,jlHue 2.2s linear infinite;box-shadow:0 0 12px rgba(46,242,226,.4);}#jeevan-loader .jl-sub{color:rgba(255,255,255,.3);font-size:11px;letter-spacing:3px;text-transform:uppercase;}@keyframes jlBlink{0%,49%{opacity:1}50%,100%{opacity:0}}@keyframes jlFill{0%{width:0}30%{width:30%}70%{width:70%}100%{width:calc(100% - 6px)}}@keyframes jlHue{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}</style><div class="jl-title">JEEVAN AI</div><div class="jl-msg" id="jl-msg">Loading<span class="jl-dot">.</span><span class="jl-dot">.</span><span class="jl-dot">.</span></div><div class="jl-track"><div class="jl-fill" id="jl-fill"></div></div><div class="jl-sub" id="jl-sub">NEURAL NETWORK</div>`;document.body.appendChild(el);}
+function showLoader(msg,sub,dest,delay){injectLoader();document.getElementById('jl-msg').innerHTML=(msg||'Loading')+'<span class="jl-dot">.</span><span class="jl-dot">.</span><span class="jl-dot">.</span>';if(sub)document.getElementById('jl-sub').textContent=sub;const fill=document.getElementById('jl-fill');fill.style.animation='none';fill.offsetHeight;fill.style.animation='jlFill 2.2s ease-out forwards,jlHue 2.2s linear infinite';document.getElementById('jeevan-loader').style.display='flex';if(dest)setTimeout(()=>{window.location.href=dest;},delay||2200);}
+const go={home:()=>showLoader('Going Home','JEEVAN AI',PAGES.home),register:()=>showLoader('Loading Register','SELECT YOUR ROLE',PAGES.roleSelect),ashaReg:()=>showLoader('ASHA Registration','PREPARING FORM',PAGES.ashaReg),doctorReg:()=>showLoader('Doctor Portal','PREPARING FORM',PAGES.doctorReg),patientReg:()=>showLoader('Patient Portal','PREPARING FORM',PAGES.patientReg),ashaLogin:()=>showLoader('ASHA Login','AUTHENTICATING',PAGES.ashaLogin),doctorLogin:()=>showLoader('Doctor Login','AUTHENTICATING',PAGES.doctorLogin),patientLogin:()=>showLoader('Patient Login','AUTHENTICATING',PAGES.patientLogin),ashaDash:()=>showLoader('ASHA Dashboard','LOADING YOUR DATA',PAGES.ashaDash),doctorDash:()=>showLoader('Doctor Dashboard','LOADING YOUR DATA',PAGES.doctorDash),patientDash:()=>showLoader('Patient Dashboard','LOADING YOUR DATA',PAGES.patientDash),success:()=>showLoader('Success!','SAVING YOUR PROFILE',PAGES.success),alert:()=>showLoader('EMERGENCY','ALERTING CONTACTS',PAGES.alert),};
+function getUser(){try{return JSON.parse(localStorage.getItem('jeevan_user'));}catch(e){return null;}}
+function setUser(u){localStorage.setItem('jeevan_user',JSON.stringify(u));}
+function clearUser(){localStorage.removeItem('jeevan_user');}
+function logout(){clearUser();go.home();}
+function generateId(role){const n=Math.floor(1000+Math.random()*9000);return role==='patient'?`PAT-${n}`:role==='asha'?`ASH-${n}`:`DOC-${n}`;}
+const sb={headers:()=>({'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Prefer':'return=representation'}),post:async(table,body)=>{const r=await fetch(`${SUPABASE_URL}/rest/v1/${table}`,{method:'POST',headers:sb.headers(),body:JSON.stringify(body)});return r.json();},get:async(table,query)=>{const r=await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`,{headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}});return r.json();},patch:async(table,filter,body)=>{await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`,{method:'PATCH',headers:sb.headers(),body:JSON.stringify(body)});}};
+function startClock(id){const el=document.getElementById(id);if(!el)return;const tick=()=>{el.textContent=new Date().toISOString().replace('T',' // ').replace(/\.\d+Z/,' UTC');};tick();setInterval(tick,1000);}
+document.addEventListener('DOMContentLoaded',()=>startClock('timestamp'));
 </script></body></html>
