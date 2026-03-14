@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/><meta content="width=device-width,initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#ec5b13","background-dark":"#020818","risk-red":"#FF2D55","risk-orange":"#FE7F2D","risk-yellow":"#FFB800","risk-green":"#A4F000"},fontFamily:{display:["Public Sans"]}}}}</script>
+<style>
+.emergency-pulse{box-shadow:0 0 0 0 rgba(255,45,85,.7);animation:pulse-red 2s infinite}
+@keyframes pulse-red{0%{transform:scale(.95);box-shadow:0 0 0 0 rgba(255,45,85,.7)}70%{transform:scale(1);box-shadow:0 0 0 10px rgba(255,45,85,0)}100%{transform:scale(.95);box-shadow:0 0 0 0 rgba(255,45,85,0)}}
+</style>
+</head>
+<body class="bg-background-dark font-display text-slate-100 min-h-screen">
+<div class="flex h-full min-h-screen w-full flex-col">
+<header class="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-white/5 backdrop-blur-md sticky top-0 z-50">
+  <div class="flex items-center gap-4">
+    <span class="material-symbols-outlined text-primary text-3xl">medical_services</span>
+    <h2 class="text-lg font-bold">Patient Central</h2>
+  </div>
+  <div class="flex items-center gap-3">
+    <span class="text-slate-400 text-sm" id="pat_dash_name">Loading...</span>
+    <button onclick="logout()" class="text-red-400 hover:text-red-300 text-xs border border-red-400/30 px-3 py-1 rounded-lg">Logout</button>
+  </div>
+</header>
+<main class="flex-1 flex flex-col lg:flex-row p-6 gap-6 max-w-[1600px] mx-auto w-full">
+  <aside class="w-full lg:w-72 flex flex-col gap-6">
+    <div class="bg-slate-900/50 p-6 rounded-2xl border border-slate-800 flex flex-col items-center text-center">
+      <div class="relative mb-4">
+        <div class="absolute -inset-1 rounded-full bg-gradient-to-tr from-risk-red via-risk-orange to-risk-yellow blur opacity-75"></div>
+        <div class="relative bg-background-dark rounded-full p-1">
+          <div class="size-24 rounded-full bg-gradient-to-br from-[#A4F000] to-[#2EF2E2] flex items-center justify-center text-3xl font-black text-[#020818]" id="pat_avatar">R</div>
+        </div>
+      </div>
+      <h3 class="text-xl font-bold" id="pat_dash_fullname">Loading...</h3>
+      <p class="text-slate-500 text-sm" id="pat_dash_id">ID: Loading...</p>
+      <div class="mt-4 flex flex-wrap justify-center gap-2">
+        <span class="px-3 py-1 rounded-full text-xs font-bold uppercase" id="risk_badge">Checking...</span>
+      </div>
+    </div>
+    <nav class="flex flex-col gap-1">
+      <a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 text-primary font-medium" href="#"><span class="material-symbols-outlined">dashboard</span> Overview</a>
+      <a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors" href="#"><span class="material-symbols-outlined">history</span> History</a>
+      <a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition-colors" href="#"><span class="material-symbols-outlined">medication</span> Medication</a>
+    </nav>
+    <button onclick="handleEmergency()" class="emergency-pulse w-full py-4 rounded-xl bg-gradient-to-r from-risk-red to-[#D7263D] text-white font-bold flex items-center justify-center gap-2 mt-auto shadow-lg">
+      <span class="material-symbols-outlined">emergency</span> EMERGENCY ALERT
+    </button>
+  </aside>
+  <div class="flex-1 flex flex-col gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-slate-900/50 p-6 rounded-2xl border border-slate-800 flex flex-col items-center justify-center">
+        <p class="text-sm font-semibold uppercase tracking-widest text-slate-500 mb-4">Risk Score</p>
+        <div class="relative size-40 flex items-center justify-center">
+          <svg class="absolute inset-0 size-full -rotate-90">
+            <circle class="text-slate-800" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-width="12"></circle>
+            <circle cx="80" cy="80" fill="transparent" r="70" stroke="url(#riskGradient)" stroke-dasharray="440" id="risk_ring" stroke-dashoffset="440" stroke-linecap="round" stroke-width="12" style="transition:stroke-dashoffset 1s ease"></circle>
+            <defs><linearGradient id="riskGradient" x1="0%" x2="100%" y1="0%" y2="0%">
+              <stop offset="0%" stop-color="#FFB800"/><stop offset="50%" stop-color="#FE7F2D"/><stop offset="100%" stop-color="#FF2D55"/>
+            </linearGradient></defs>
+          </svg>
+          <div class="text-center z-10">
+            <span class="text-4xl font-black text-risk-red" id="risk_score_display">--</span>
+            <span class="block text-xs font-bold text-slate-500 uppercase" id="risk_level_display">Loading</span>
+          </div>
+        </div>
+      </div>
+      <div class="md:col-span-2 bg-slate-900/50 p-6 rounded-2xl border border-slate-800 flex flex-col">
+        <h4 class="font-bold text-lg mb-1">Your Latest Vitals</h4>
+        <p class="text-xs text-slate-500 mb-4">From most recent health test</p>
+        <div id="vitals_display" class="grid grid-cols-2 gap-3 text-sm">
+          <div class="bg-slate-800/50 p-3 rounded-xl"><p class="text-slate-400 text-xs">Blood Pressure</p><p class="font-bold" id="v_bp">--/--</p></div>
+          <div class="bg-slate-800/50 p-3 rounded-xl"><p class="text-slate-400 text-xs">Blood Sugar</p><p class="font-bold" id="v_sugar">-- mg/dL</p></div>
+          <div class="bg-slate-800/50 p-3 rounded-xl"><p class="text-slate-400 text-xs">Oxygen</p><p class="font-bold" id="v_oxygen">-- %</p></div>
+          <div class="bg-slate-800/50 p-3 rounded-xl"><p class="text-slate-400 text-xs">Pulse</p><p class="font-bold" id="v_pulse">-- BPM</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div class="bg-slate-900/50 p-5 rounded-2xl border-l-4 border-risk-red shadow-sm">
+        <span class="material-symbols-outlined text-risk-red">monitor_heart</span>
+        <p class="text-xs font-bold text-slate-500 uppercase mb-1 mt-3">Blood Pressure</p>
+        <h3 class="text-2xl font-black" id="bp_display">--/--</h3>
+        <span class="text-xs text-slate-400">mmHg</span>
+      </div>
+      <div class="bg-slate-900/50 p-5 rounded-2xl border-l-4 border-risk-orange shadow-sm">
+        <span class="material-symbols-outlined text-risk-orange">bloodtype</span>
+        <p class="text-xs font-bold text-slate-500 uppercase mb-1 mt-3">Blood Sugar</p>
+        <h3 class="text-2xl font-black" id="sugar_display">--</h3>
+        <span class="text-xs text-slate-400">mg/dL</span>
+      </div>
+      <div class="bg-slate-900/50 p-5 rounded-2xl border-l-4 border-risk-yellow shadow-sm">
+        <span class="material-symbols-outlined text-risk-yellow">pulse_alert</span>
+        <p class="text-xs font-bold text-slate-500 uppercase mb-1 mt-3">Heart Rate</p>
+        <h3 class="text-2xl font-black" id="pulse_display">--</h3>
+        <span class="text-xs text-slate-400">BPM</span>
+      </div>
+      <div class="bg-slate-900/50 p-5 rounded-2xl border-l-4 border-risk-green shadow-sm">
+        <span class="material-symbols-outlined text-risk-green">air</span>
+        <p class="text-xs font-bold text-slate-500 uppercase mb-1 mt-3">Oxygen</p>
+        <h3 class="text-2xl font-black" id="oxygen_display">--</h3>
+        <span class="text-xs text-slate-400">% SpO2</span>
+      </div>
+    </div>
+    <div id="advice_box" class="hidden bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+      <h4 class="font-bold mb-2 text-[#A4F000]">🤖 AI Health Advice</h4>
+      <p class="text-slate-300" id="advice_text"></p>
+    </div>
+  </div>
+</main>
+</div>
+<script>
+function handleEmergency() {
+  const user = getUser();
+  localStorage.setItem('current_alert', JSON.stringify({patient_name: user?.full_name, patient_id: user?.jeevan_id}));
+  go.alert();
+}
+
+async function loadPatientData() {
+  const user = getUser();
+  if (!user) { go.patientLogin(); return; }
+  document.getElementById('pat_dash_name').textContent = user.full_name || user.jeevan_id;
+  document.getElementById('pat_dash_fullname').textContent = user.full_name || 'Patient';
+  document.getElementById('pat_dash_id').textContent = 'ID: ' + (user.jeevan_id || '-');
+  document.getElementById('pat_avatar').textContent = (user.full_name||'P').charAt(0).toUpperCase();
+  if (user.risk_score !== undefined) updateRiskUI(user.risk_score, user.risk_level);
+
+  try {
+    const tests = await sb.get('health_tests', `patient_id=eq.${user.jeevan_id}&order=created_at.desc&limit=1&select=*`);
+    if (tests && tests.length > 0) {
+      const t = tests[0];
+      document.getElementById('bp_display').textContent = `${t.bp_systolic||'--'}/${t.bp_diastolic||'--'}`;
+      document.getElementById('sugar_display').textContent = t.blood_sugar || '--';
+      document.getElementById('pulse_display').textContent = t.pulse_rate || '--';
+      document.getElementById('oxygen_display').textContent = t.oxygen_level || '--';
+      document.getElementById('v_bp').textContent = `${t.bp_systolic||'--'}/${t.bp_diastolic||'--'}`;
+      document.getElementById('v_sugar').textContent = (t.blood_sugar||'--') + ' mg/dL';
+      document.getElementById('v_oxygen').textContent = (t.oxygen_level||'--') + ' %';
+      document.getElementById('v_pulse').textContent = (t.pulse_rate||'--') + ' BPM';
+      if (t.advice_hindi) {
+        document.getElementById('advice_text').textContent = t.advice_hindi;
+        document.getElementById('advice_box').classList.remove('hidden');
+      }
+      updateRiskUI(t.risk_score, t.risk_level);
+    }
+  } catch(e) { console.log('Could not load tests:', e); }
+}
+
+function updateRiskUI(score, level) {
+  document.getElementById('risk_score_display').textContent = score || '--';
+  document.getElementById('risk_level_display').textContent = level || 'Unknown';
+  const offset = 440 - (440 * (score||0) / 100);
+  document.getElementById('risk_ring').style.strokeDashoffset = offset;
+  const badge = document.getElementById('risk_badge');
+  const colors = {LOW:'bg-green-500/20 text-green-400',MEDIUM:'bg-yellow-500/20 text-yellow-400',HIGH:'bg-orange-500/20 text-orange-400',CRITICAL:'bg-red-500/20 text-red-400'};
+  badge.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase ' + (colors[level]||colors.LOW);
+  badge.textContent = level || 'LOW';
+}
+
+document.addEventListener('DOMContentLoaded', loadPatientData);
+
+// ════════════════════════════════════════════
+//   JEEVAN AI — SHARED API + NAVIGATION
+//   Paste this block inside <script> tags
+//   at the bottom of EVERY HTML page
+// ════════════════════════════════════════════
+
+const SUPABASE_URL = "https://dsvbnrhsawfoiqwjnskb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzdmJucmhzYXdmb2lxd2puc2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MTE0MTYsImV4cCI6MjA4ODk4NzQxNn0.JE7I1MUp51ubUunPlsgRr2V8Rq-7LLQ6Qp5gw05zl4w";   // ← Settings → API Keys → anon public
+const GEMINI_KEY   = "AIzaSyC5LOL5e7Ic4Z5UGGIlMloh_4vA7MfxIrA"; // ← aistudio.google.com
+
+// ── PAGE PATHS ────────────────────────────
+const PAGES = {
+  home:           '../jeevan_ai_advanced_front_page/code.html',
+  roleSelect:     '../enhanced_role_selection/code.html',
+  registerRole:   '../register_role_select/code.html',
+  patientReg:     '../patient_register_form/code.html',
+  ashaReg:        '../asha_registration_with_otp_field/code.html',
+  doctorReg:      '../doctor_register_form/code.html',
+  patientLogin:   '../patient_login/code.html',
+  ashaLogin:      '../asha_worker_login/code.html',
+  doctorLogin:    '../doctor_login_animated_refinement/code.html',
+  patientDash:    '../patient_dashboard_multilingual_toggles/code.html',
+  ashaDash:       '../asha_dashboard_multilingual_toggles/code.html',
+  doctorDash:     '../doctor_dashboard_multilingual_toggles/code.html',
+  success:        '../success_screen/code.html',
+  alert:          '../alert_screen/code.html',
+};
+
+// ── LOADING OVERLAY HTML (inject once) ───
+function injectLoader() {
+  if (document.getElementById('jeevan-loader')) return;
+  const el = document.createElement('div');
+  el.id = 'jeevan-loader';
+  el.innerHTML = `
+    <style>
+      #jeevan-loader {
+        display:none; position:fixed; inset:0;
+        background:rgba(2,8,24,0.97); z-index:99999;
+        flex-direction:column; align-items:center;
+        justify-content:center; gap:20px; font-family:'Public Sans',sans-serif;
+      }
+      #jeevan-loader .jl-title {
+        background:linear-gradient(to right,#F492F0,#2EF2E2);
+        -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        font-size:24px; font-weight:900; letter-spacing:4px;
+      }
+      #jeevan-loader .jl-msg {
+        color:white; font-size:15px; font-weight:600; letter-spacing:2px;
+      }
+      #jeevan-loader .jl-dot { animation:jlBlink 1.5s infinite; }
+      #jeevan-loader .jl-dot:nth-child(2){animation-delay:.3s}
+      #jeevan-loader .jl-dot:nth-child(3){animation-delay:.6s}
+      #jeevan-loader .jl-track {
+        position:relative; width:220px; height:36px;
+        background:#1a1a1a; border-radius:18px; overflow:hidden;
+      }
+      #jeevan-loader .jl-fill {
+        position:absolute; top:3px; left:3px;
+        height:calc(100% - 6px); width:0%;
+        background:linear-gradient(90deg,#2EF2E2,#7B2FFF,#F492F0);
+        border-radius:15px;
+        animation:jlFill 2.2s ease-out forwards, jlHue 2.2s linear infinite;
+        box-shadow:0 0 12px rgba(46,242,226,.4);
+      }
+      #jeevan-loader .jl-sub {
+        color:rgba(255,255,255,.3); font-size:11px; letter-spacing:3px; text-transform:uppercase;
+      }
+      @keyframes jlBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
+      @keyframes jlFill{0%{width:0}30%{width:30%}70%{width:70%}100%{width:calc(100% - 6px)}}
+      @keyframes jlHue{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
+    </style>
+    <div class="jl-title">JEEVAN AI</div>
+    <div class="jl-msg" id="jl-msg">Loading<span class="jl-dot">.</span><span class="jl-dot">.</span><span class="jl-dot">.</span></div>
+    <div class="jl-track"><div class="jl-fill" id="jl-fill"></div></div>
+    <div class="jl-sub" id="jl-sub">NEURAL NETWORK</div>
+  `;
+  document.body.appendChild(el);
+}
+
+function showLoader(msg, sub, dest, delay) {
+  injectLoader();
+  document.getElementById('jl-msg').innerHTML = (msg||'Loading') +
+    '<span class="jl-dot">.</span><span class="jl-dot">.</span><span class="jl-dot">.</span>';
+  if (sub) document.getElementById('jl-sub').textContent = sub;
+  const fill = document.getElementById('jl-fill');
+  fill.style.animation = 'none'; fill.offsetHeight;
+  fill.style.animation = 'jlFill 2.2s ease-out forwards, jlHue 2.2s linear infinite';
+  document.getElementById('jeevan-loader').style.display = 'flex';
+  if (dest) setTimeout(() => { window.location.href = dest; }, delay || 2200);
+}
+
+// ── NAVIGATION HELPERS ────────────────────
+const go = {
+  home:        () => showLoader('Going Home',        'JEEVAN AI',            PAGES.home),
+  register:    () => showLoader('Loading Register',  'SELECT YOUR ROLE',     PAGES.roleSelect),
+  ashaReg:     () => showLoader('ASHA Registration', 'PREPARING FORM',       PAGES.ashaReg),
+  doctorReg:   () => showLoader('Doctor Portal',     'PREPARING FORM',       PAGES.doctorReg),
+  patientReg:  () => showLoader('Patient Portal',    'PREPARING FORM',       PAGES.patientReg),
+  ashaLogin:   () => showLoader('ASHA Login',        'AUTHENTICATING',       PAGES.ashaLogin),
+  doctorLogin: () => showLoader('Doctor Login',      'AUTHENTICATING',       PAGES.doctorLogin),
+  patientLogin:() => showLoader('Patient Login',     'AUTHENTICATING',       PAGES.patientLogin),
+  ashaDash:    () => showLoader('ASHA Dashboard',    'LOADING YOUR DATA',    PAGES.ashaDash),
+  doctorDash:  () => showLoader('Doctor Dashboard',  'LOADING YOUR DATA',    PAGES.doctorDash),
+  patientDash: () => showLoader('Patient Dashboard', 'LOADING YOUR DATA',    PAGES.patientDash),
+  success:     () => showLoader('Success!',          'SAVING YOUR PROFILE',  PAGES.success),
+  alert:       () => showLoader('EMERGENCY',         'ALERTING CONTACTS',    PAGES.alert),
+};
+
+// ── SESSION HELPERS ───────────────────────
+function getUser()    { try { return JSON.parse(localStorage.getItem('jeevan_user')); } catch(e) { return null; } }
+function setUser(u)   { localStorage.setItem('jeevan_user', JSON.stringify(u)); }
+function clearUser()  { localStorage.removeItem('jeevan_user'); }
+function logout()     { clearUser(); go.home(); }
+function generateId(role) {
+  const n = Math.floor(1000 + Math.random() * 9000);
+  return role==='patient'?`PAT-${n}`:role==='asha'?`ASH-${n}`:`DOC-${n}`;
+}
+
+// ── SUPABASE HELPERS ──────────────────────
+const sb = {
+  headers: () => ({
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Prefer': 'return=representation'
+  }),
+  post: async (table, body) => {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method:'POST', headers: sb.headers(), body: JSON.stringify(body)
+    });
+    return r.json();
+  },
+  get: async (table, query) => {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    return r.json();
+  },
+  patch: async (table, filter, body) => {
+    await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
+      method:'PATCH', headers: sb.headers(), body: JSON.stringify(body)
+    });
+  }
+};
+
+// ── REGISTER FUNCTIONS ────────────────────
+async function registerPatient(d) {
+  const jeevan_id = generateId('patient');
+  await sb.post('patients', { jeevan_id, full_name:`${d.first_name} ${d.last_name}`,
+    phone:d.phone, age:parseInt(d.age)||0, gender:d.gender, village:d.village||'',
+    district:d.district||'', blood_group:d.blood_group||'', role:'patient',
+    password:d.password||'1234', risk_score:0, risk_level:'LOW' });
+  setUser({ jeevan_id, full_name:`${d.first_name} ${d.last_name}`, role:'patient' });
+  return jeevan_id;
+}
+
+async function registerAsha(d) {
+  const jeevan_id = generateId('asha');
+  await sb.post('asha_workers', { jeevan_id, full_name:d.full_name, phone:d.phone,
+    username:d.username||'', email:d.email||'', password:d.password||'1234',
+    village:d.village||'', district:d.district||'', otp_verified:false });
+  setUser({ jeevan_id, full_name:d.full_name, role:'asha' });
+  return jeevan_id;
+}
+
+async function registerDoctor(d) {
+  const jeevan_id = generateId('doctor');
+  await sb.post('doctors', { jeevan_id, full_name:d.full_name,
+    license_number:d.license_number||'', email:d.email||'',
+    specialization:d.specialization||'', hospital_name:d.hospital||'',
+    password:d.password||'1234' });
+  setUser({ jeevan_id, full_name:d.full_name, role:'doctor' });
+  return jeevan_id;
+}
+
+// ── LOGIN FUNCTION ────────────────────────
+async function loginUser(jeevan_id, password, role) {
+  const table = role==='patient'?'patients':role==='asha'?'asha_workers':'doctors';
+  const data = await sb.get(table, `jeevan_id=eq.${jeevan_id}&password=eq.${password}&select=*`);
+  if (data && data.length > 0) {
+    setUser({...data[0], role});
+    return { success:true, user:data[0] };
+  }
+  return { success:false };
+}
+
+// ── GEMINI AI RISK ────────────────────────
+async function calcRisk(v) {
+  const r = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+    { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ contents:[{ parts:[{ text:
+        `You are JEEVAN AI. Rural India patient vitals:
+BP:${v.bp_systolic}/${v.bp_diastolic} Sugar:${v.blood_sugar} O2:${v.oxygen_level}% Pulse:${v.pulse_rate} Temp:${v.temperature}F Age:${v.age} Symptoms:${v.symptoms||'none'}
+Reply ONLY valid JSON no markdown:
+{"crs":0-100,"risk_level":"LOW/MEDIUM/HIGH/CRITICAL","rvi":0.0,"advice_hindi":"2 lines","advice_english":"2 lines","see_doctor":true/false,"emergency":true/false}`
+      }]}]})
+    });
+  const data = await r.json();
+  const txt = data.candidates[0].content.parts[0].text.replace(/```json|```/g,'').trim();
+  return JSON.parse(txt);
+}
+
+// ── LIVE TIMESTAMP ────────────────────────
+function startClock(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const tick = () => { el.textContent = new Date().toISOString().replace('T',' // ').replace(/\.\d+Z/,' UTC'); };
+  tick(); setInterval(tick,1000);
+}
+
+// AUTO START CLOCK IF ELEMENT EXISTS
+document.addEventListener('DOMContentLoaded', () => startClock('timestamp'));
+</script></body></html>

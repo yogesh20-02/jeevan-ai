@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JEEVAN AI | Mastering Medical Intelligence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#ec5b13",
+                    "background-light": "#f8f6f6",
+                    "background-dark": "#0a0510",
+                },
+                fontFamily: { "display": ["Public Sans", "sans-serif"] },
+                borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+        },
+    }
+</script>
+<style>
+    .mesh-gradient {
+        background: radial-gradient(at 0% 0%, #150016 0%, transparent 50%),
+                    radial-gradient(at 100% 0%, #29104A 0%, transparent 50%),
+                    radial-gradient(at 100% 100%, #020818 0%, transparent 50%),
+                    radial-gradient(at 0% 100%, #150016 0%, transparent 50%),
+                    #0a0510;
+    }
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+    .text-glow-purple { text-shadow: 0 0 20px rgba(244, 146, 240, 0.5); }
+    .neon-border-cyan { box-shadow: 0 0 15px rgba(46, 242, 226, 0.3); }
+    .ekg-line {
+        background-image: linear-gradient(90deg, transparent 0%, #2ef2e2 50%, transparent 100%);
+        background-size: 200% 1px;
+        height: 1px; width: 100%; opacity: 0.2;
+    }
+
+    /* ⚡ ELECTRIC LIGHTNING BUTTON */
+    .electric-btn { position: relative; overflow: hidden; isolation: isolate; }
+    .electric-btn::before {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: inherit;
+        background: linear-gradient(90deg, transparent 0%, #2EF2E2 25%, #7B2FFF 50%, #F492F0 75%, transparent 100%);
+        background-size: 400% 100%;
+        animation: electricRun 2s linear infinite;
+        z-index: -1;
+    }
+    .electric-btn::after {
+        content: '';
+        position: absolute;
+        inset: 2px;
+        border-radius: calc(0.75rem - 2px);
+        background: #020818;
+        z-index: -1;
+    }
+    @keyframes electricRun {
+        0% { background-position: 200% 0 }
+        100% { background-position: -200% 0 }
+    }
+
+    /* 🌊 LIQUID LOADER */
+    .loader-track {
+        position: relative; width: 220px; height: 36px;
+        background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+        border-radius: 18px; overflow: hidden;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+    }
+    .liquid-fill {
+        position: absolute; top: 3px; left: 3px;
+        height: calc(100% - 6px);
+        background: linear-gradient(90deg, #2EF2E2, #7B2FFF, #F492F0, #f59e0b);
+        border-radius: 15px;
+        animation: fillProgress 2.5s ease-out forwards, colorShift 2.5s linear infinite;
+        box-shadow: 0 0 12px rgba(46,242,226,0.4);
+        width: 0%;
+    }
+    .loading-text {
+        color: white; font-size: 16px; font-weight: 600;
+        letter-spacing: 2px; font-family: 'Public Sans', sans-serif;
+        animation: textGlow 1s ease-in-out infinite;
+    }
+    .dot { animation: blink 1.5s infinite; }
+    .dot:nth-of-type(1) { animation-delay: 0s; }
+    .dot:nth-of-type(2) { animation-delay: 0.3s; }
+    .dot:nth-of-type(3) { animation-delay: 0.6s; }
+
+    @keyframes fillProgress {
+        0% { width: 0% } 30% { width: 30% } 70% { width: 70% } 100% { width: calc(100% - 6px) }
+    }
+    @keyframes colorShift {
+        0% { filter: hue-rotate(0deg) } 100% { filter: hue-rotate(360deg) }
+    }
+    @keyframes textGlow {
+        0%,100% { opacity:0.7; text-shadow: 0 0 8px rgba(46,242,226,0.3) }
+        50% { opacity:1; text-shadow: 0 0 16px rgba(46,242,226,0.7) }
+    }
+    @keyframes blink { 0%,49% { opacity:1 } 50%,100% { opacity:0 } }
+
+    /* LOADING OVERLAY */
+    #loading-overlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(10,5,16,0.97); z-index: 9999;
+        flex-direction: column; align-items: center;
+        justify-content: center; gap: 20px;
+    }
+
+    /* PULSE GLOW */
+    @keyframes pulse-glow {
+        0%,100% { box-shadow: 0 0 5px rgba(52,211,153,0.3) }
+        50% { box-shadow: 0 0 20px rgba(52,211,153,0.6) }
+    }
+    .pulse-glow { animation: pulse-glow 2s infinite; }
+</style>
+</head>
+<body class="font-display bg-background-dark text-slate-100 selection:bg-primary/30">
+
+<!-- ═══ LOADING OVERLAY ═══ -->
+<div id="loading-overlay">
+    <div class="text-transparent bg-clip-text bg-gradient-to-r from-[#F492F0] to-[#2EF2E2] text-2xl font-black tracking-widest mb-4">
+        JEEVAN AI
+    </div>
+    <div class="flex flex-col items-center gap-4">
+        <div class="loading-text" id="loading-text">
+            Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+        </div>
+        <div class="loader-track">
+            <div class="liquid-fill" id="liquid-fill"></div>
+        </div>
+        <p class="text-white/40 text-xs tracking-widest" id="loading-sub">NEURAL NETWORK ONLINE</p>
+    </div>
+</div>
+
+<!-- ═══ MAIN WRAPPER ═══ -->
+<div class="relative min-h-screen w-full overflow-hidden mesh-gradient">
+    <!-- Background Elements -->
+    <div class="absolute inset-0 pointer-events-none opacity-20">
+        <div class="absolute top-1/4 left-0 w-full ekg-line"></div>
+        <div class="absolute top-2/3 left-0 w-full ekg-line" style="opacity: 0.1;"></div>
+        <div class="absolute top-10 left-10 w-64 h-64 bg-primary/10 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-10 right-10 w-96 h-96 bg-purple-600/10 rounded-full blur-[150px]"></div>
+    </div>
+
+    <div class="relative z-10 layout-container flex h-full grow flex-col max-w-[1200px] mx-auto px-4 sm:px-10">
+
+        <!-- ═══ HEADER ═══ -->
+        <header class="flex items-center justify-between whitespace-nowrap border-b border-white/10 px-4 py-6">
+            <div class="flex items-center gap-3">
+                <div class="size-8 flex items-center justify-center bg-gradient-to-br from-[#F492F0] to-[#AE7DAC] rounded-lg shadow-lg">
+                    <span class="material-symbols-outlined text-white text-xl">biotech</span>
+                </div>
+                <h2 class="text-white text-xl font-black tracking-tighter uppercase">JEEVAN AI</h2>
+            </div>
+            <div class="flex flex-1 justify-end gap-6 items-center">
+                <div class="hidden md:flex items-center gap-4">
+                    <span class="text-white/60 text-xs font-bold tracking-widest uppercase">Protocol: v4.0.2</span>
+                    <div class="h-4 w-[1px] bg-white/10"></div>
+                    <a class="text-white/80 hover:text-white text-sm font-medium transition-colors" href="#">EN/HI</a>
+                </div>
+                <div class="flex gap-3">
+                    <div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-1.5 pulse-glow">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <span class="text-emerald-400 text-[10px] font-bold tracking-widest uppercase">System: Online</span>
+                    </div>
+                    <!-- Live Alert Badge -->
+                    <div class="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-full px-4 py-1.5">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                        </span>
+                        <span class="text-red-400 text-[10px] font-bold tracking-widest uppercase" id="alert-count">3 Alerts Active</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ═══ HERO ═══ -->
+        <main class="flex flex-col flex-1 justify-center py-12 md:py-24">
+            <div class="glass-panel rounded-3xl p-8 md:p-16 flex flex-col items-center text-center relative overflow-hidden">
+                <div class="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+                <div class="relative z-10 flex flex-col gap-6 max-w-3xl">
+                    <div class="inline-block mx-auto px-4 py-1 rounded-full border border-primary/30 bg-primary/5 text-primary text-[10px] font-bold tracking-[0.3em] uppercase mb-2">
+                        Neural Network Initialized
+                    </div>
+                    <h1 class="text-transparent bg-clip-text bg-gradient-to-r from-[#F492F0] via-[#AE7DAC] to-[#2EF2E2] text-6xl md:text-8xl font-black leading-none tracking-tight text-glow-purple">
+                        JEEVAN AI
+                    </h1>
+                    <div class="space-y-4">
+                        <h2 class="text-cyan-400 text-xl md:text-2xl font-light tracking-widest uppercase opacity-90">
+                            Saving Lives Before They Need Saving
+                        </h2>
+                        <p class="text-slate-300/80 text-base md:text-lg font-light leading-relaxed max-w-2xl mx-auto">
+                            AI-powered rural health monitoring for India. ASHA workers collect vitals → AI calculates risk → Automated alerts <strong class="text-white/90">before emergencies happen.</strong>
+                        </p>
+                    </div>
+
+                    <!-- ⚡ ELECTRIC BUTTONS -->
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+
+                        <!-- REGISTER BUTTON -->
+                        <button
+                            onclick="goToRegister()"
+                            class="electric-btn group flex min-w-[200px] cursor-pointer items-center justify-center rounded-xl h-14 px-8 text-white text-sm font-bold tracking-[0.2em] transition-all hover:scale-105 active:scale-95">
+                            <span class="material-symbols-outlined mr-2 text-lg text-[#2EF2E2]">person_add</span>
+                            REGISTER
+                        </button>
+
+                        <!-- LOGIN BUTTON -->
+                        <button
+                            onclick="goToLogin()"
+                            class="electric-btn group flex min-w-[200px] cursor-pointer items-center justify-center rounded-xl h-14 px-8 text-white text-sm font-bold tracking-[0.2em] transition-all hover:scale-105 active:scale-95">
+                            <span class="material-symbols-outlined mr-2 text-lg text-[#F492F0]">fingerprint</span>
+                            LOGIN
+                        </button>
+                    </div>
+
+                    <p class="text-white/30 text-xs tracking-widest mt-2">🇮🇳 Protecting 847 villages across rural India • ₹37/patient/year</p>
+                </div>
+            </div>
+
+            <!-- Stats Panels -->
+            <div class="mt-12">
+                <h3 class="text-white/40 text-[10px] font-bold tracking-[0.4em] uppercase mb-6 px-2">Live System Diagnostics</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Patients Protected -->
+                    <div class="glass-panel flex flex-col gap-4 rounded-2xl p-6 transition-transform hover:-translate-y-1">
+                        <div class="flex justify-between items-start">
+                            <div class="p-2 rounded-lg bg-pink-500/10 border border-pink-500/20 text-pink-400">
+                                <span class="material-symbols-outlined">favorite</span>
+                            </div>
+                            <span class="text-emerald-400 text-[10px] font-bold">+247 TODAY</span>
+                        </div>
+                        <div>
+                            <p class="text-white/50 text-xs font-bold tracking-widest uppercase">Patients Protected</p>
+                            <p class="text-white text-3xl font-black leading-tight mt-1">50,000<span class="text-sm font-normal text-white/40 ml-1">+</span></p>
+                        </div>
+                        <div class="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+                            <div class="bg-gradient-to-r from-pink-500 to-purple-500 h-full rounded-full w-[78%]"></div>
+                        </div>
+                    </div>
+                    <!-- ASHA Workers -->
+                    <div class="glass-panel flex flex-col gap-4 rounded-2xl p-6 transition-transform hover:-translate-y-1 border-primary/20">
+                        <div class="flex justify-between items-start">
+                            <div class="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
+                                <span class="material-symbols-outlined">health_and_safety</span>
+                            </div>
+                            <span class="text-cyan-400 text-[10px] font-bold">ACTIVE NOW</span>
+                        </div>
+                        <div>
+                            <p class="text-white/50 text-xs font-bold tracking-widest uppercase">ASHA Warriors</p>
+                            <p class="text-white text-3xl font-black leading-tight mt-1">1,200<span class="text-sm font-normal text-white/40 ml-1">+</span></p>
+                        </div>
+                        <div class="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+                            <div class="bg-gradient-to-r from-cyan-500 to-green-500 h-full rounded-full w-[65%]"></div>
+                        </div>
+                    </div>
+                    <!-- AI Monitoring -->
+                    <div class="glass-panel flex flex-col gap-4 rounded-2xl p-6 transition-transform hover:-translate-y-1">
+                        <div class="flex justify-between items-start">
+                            <div class="p-2 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400">
+                                <span class="material-symbols-outlined">shield</span>
+                            </div>
+                            <span class="text-emerald-400 text-[10px] font-bold">ALWAYS ON</span>
+                        </div>
+                        <div>
+                            <p class="text-white/50 text-xs font-bold tracking-widest uppercase">AI Monitoring</p>
+                            <p class="text-white text-3xl font-black leading-tight mt-1">24/7<span class="text-sm font-normal text-white/40 ml-1">Live</span></p>
+                        </div>
+                        <div class="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+                            <div class="bg-gradient-to-r from-green-500 to-cyan-500 h-full rounded-full w-[100%]"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mt-12 glass-panel rounded-2xl p-6 border-white/5">
+                <div class="flex flex-col gap-4">
+                    <div class="flex justify-between items-end">
+                        <div class="space-y-1">
+                            <p class="text-white text-sm font-bold tracking-widest">AI RISK ANALYSIS ENGINE</p>
+                            <p class="text-white/40 text-[10px] font-medium uppercase">Processing real-time bio-telemetry from 847 villages</p>
+                        </div>
+                        <p class="text-cyan-400 text-xl font-black">85%</p>
+                    </div>
+                    <div class="relative h-3 w-full bg-white/5 rounded-full overflow-hidden p-[2px]">
+                        <div class="h-full bg-gradient-to-r from-cyan-500 via-primary to-purple-600 rounded-full w-[85%] relative">
+                            <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px] font-bold tracking-[0.2em]">
+                        <span class="text-white/30">JEEVAN-CORE-v4.0.2</span>
+                        <span class="text-emerald-500/80">LATENCY: 14MS</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-auto py-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex flex-col items-center md:items-start">
+                <p class="text-white/40 text-[10px] font-black tracking-[0.3em] uppercase">JEEVAN_AI_CORE_v4.0.2</p>
+                <p class="text-white/20 text-[9px] font-medium uppercase mt-1">SAVING LIVES BEFORE THEY NEED SAVING 🇮🇳</p>
+            </div>
+            <div class="flex gap-8">
+                <div class="flex flex-col items-center md:items-end">
+                    <p class="text-white/40 text-[10px] font-bold tracking-widest uppercase">System Timestamp</p>
+                    <p class="text-white/80 text-xs font-mono mt-1" id="timestamp">Loading...</p>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <a class="size-8 rounded-full border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:border-white/30 transition-all" href="#">
+                    <span class="material-symbols-outlined text-sm">terminal</span>
+                </a>
+                <a class="size-8 rounded-full border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:border-white/30 transition-all" href="#">
+                    <span class="material-symbols-outlined text-sm">code</span>
+                </a>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<!-- Background Decoration -->
+<div class="fixed top-0 right-0 w-1/3 h-full pointer-events-none opacity-10">
+    <img class="w-full h-full object-cover grayscale brightness-50"
+        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBE2_e_3ZXNinsAD13tvCvrOX2dCEQU-TNoxMWnOFtSQeTA-18Vv9Txe5IAt7l09Jbg1eCBukoCfIs_B97SOD0DmVuA7xF2QTJjUkS-O468WAT861kv9P_iOq2SjX2MqXpQawl-j-0DsruG7Y-GX2GOzw2ndONmp7Mx2Y6wRA-GymJmKXvheoqSQvggP-tHIU2RHN0oOfvB8dM5JCgcnIwIKfPIqRpiH_bBFDvRYQpH2AvDWrRKuBTWJkzx0IBGicvYVi6tlZGkvE24"/>
+</div>
+
+<!-- ═══════════════════════════════════════
+     JEEVAN AI — NAVIGATION + API SCRIPT
+════════════════════════════════════════ -->
+<script>
+// ── CONFIG ──────────────────────────────
+const SUPABASE_URL = "https://dsvbnrhsawfoiqwjnskb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzdmJucmhzYXdmb2lxd2puc2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MTE0MTYsImV4cCI6MjA4ODk4NzQxNn0.JE7I1MUp51ubUunPlsgRr2V8Rq-7LLQ6Qp5gw05zl4w"; // ← paste from Supabase Settings → API Keys
+const GEMINI_KEY   = "AIzaSyC5LOL5e7Ic4Z5UGGIlMloh_4vA7MfxIrA"; // ← paste from aistudio.google.com
+
+// ── LIVE TIMESTAMP ───────────────────────
+function updateTimestamp() {
+    const now = new Date();
+    const str = now.toISOString().replace('T', ' // ').replace(/\.\d+Z/, ' UTC');
+    const el = document.getElementById('timestamp');
+    if (el) el.textContent = str;
+}
+updateTimestamp();
+setInterval(updateTimestamp, 1000);
+
+// ── LOADING OVERLAY ──────────────────────
+function showLoading(msg, sub) {
+    document.getElementById('loading-text').innerHTML =
+        msg + '<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
+    document.getElementById('loading-sub').textContent = sub || '';
+    // Reset and restart animation
+    const fill = document.getElementById('liquid-fill');
+    fill.style.animation = 'none';
+    fill.offsetHeight; // reflow
+    fill.style.animation = 'fillProgress 2.5s ease-out forwards, colorShift 2.5s linear infinite';
+    document.getElementById('loading-overlay').style.display = 'flex';
+}
+
+// ── NAVIGATION ───────────────────────────
+function goToRegister() {
+    showLoading('Loading Register', 'PREPARING NEURAL INTERFACE');
+    setTimeout(() => {
+        window.location.href = '../enhanced_role_selection/code.html';
+    }, 2500);
+}
+
+function goToLogin() {
+    showLoading('Authenticating', 'VERIFYING SYSTEM ACCESS');
+    setTimeout(() => {
+        window.location.href = '../asha_worker_login/code.html';
+    }, 2500);
+}
+
+// ── HELPER FUNCTIONS ─────────────────────
+function generateJeevanId(role) {
+    const num = Math.floor(1000 + Math.random() * 9000);
+    if (role === 'patient') return `PAT-${num}`;
+    if (role === 'asha')    return `ASH-${num}`;
+    if (role === 'doctor')  return `DOC-${num}`;
+}
+
+function getCurrentUser() {
+    try { return JSON.parse(localStorage.getItem('jeevan_user')); }
+    catch(e) { return null; }
+}
+
+function logout() {
+    localStorage.removeItem('jeevan_user');
+    window.location.href = '../jeevan_ai_advanced_front_page/code.html';
+}
+
+// ── SUPABASE LOGIN ────────────────────────
+async function loginUser(jeevan_id, password, role) {
+    const table = role === 'patient' ? 'patients'
+                : role === 'asha'    ? 'asha_workers' : 'doctors';
+    const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/${table}?jeevan_id=eq.${jeevan_id}&password=eq.${password}&select=*`,
+        { headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` } }
+    );
+    const data = await res.json();
+    if (data.length > 0) {
+        localStorage.setItem('jeevan_user', JSON.stringify({...data[0], role}));
+        return { success: true, user: data[0] };
+    }
+    return { success: false };
+}
+
+// ── ON LOAD CHECK ────────────────────────
+window.onload = function() {
+    const user = getCurrentUser();
+    if (user) {
+        // Already logged in — show their name in alert badge
+        const badge = document.getElementById('alert-count');
+        if (badge) badge.textContent = `Hi, ${user.full_name?.split(' ')[0] || user.jeevan_id}`;
+    }
+}
+</script>
+
+</body></html>

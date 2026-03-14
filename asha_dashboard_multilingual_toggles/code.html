@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/><meta content="width=device-width,initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#2EF2E2","background-dark":"#020818"},fontFamily:{display:["Public Sans"]}}}}</script>
+<style>
+.bg-mesh{background:radial-gradient(circle at 50% 50%,#0E4040 0%,#020818 100%)}
+.glass{background:rgba(14,64,64,.3);backdrop-filter:blur(12px);border:1px solid rgba(46,242,226,.2)}
+</style>
+</head>
+<body class="font-display bg-background-dark text-slate-100 min-h-screen">
+<div class="bg-mesh min-h-screen flex flex-col">
+<header class="flex items-center justify-between border-b border-primary/20 px-6 py-4 bg-[#020818]/50 backdrop-blur-md sticky top-0 z-50">
+  <div class="flex items-center gap-3">
+    <span class="material-symbols-outlined text-primary">hexagon</span>
+    <h2 class="text-primary font-black text-xl">JEEVAN AI — ASHA</h2>
+  </div>
+  <div class="flex items-center gap-3">
+    <span class="text-primary/70 text-sm" id="asha_dash_name">Loading...</span>
+    <button onclick="logout()" class="text-red-400 hover:text-red-300 text-xs border border-red-400/30 px-3 py-1 rounded-lg">Logout</button>
+  </div>
+</header>
+<main class="flex-1 p-6 flex flex-col lg:flex-row gap-6 max-w-[1600px] mx-auto w-full">
+  <!-- Left: Patient List -->
+  <div class="w-full lg:w-80 glass rounded-2xl p-4 flex flex-col gap-3">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="text-primary font-bold text-sm uppercase tracking-widest">Patient Priority List</h3>
+      <button onclick="showAddPatient()" class="bg-primary/20 hover:bg-primary/30 text-primary text-xs px-3 py-1 rounded-lg flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">add</span> Add
+      </button>
+    </div>
+    <div id="patient_list" class="flex flex-col gap-2 overflow-y-auto max-h-[60vh]">
+      <p class="text-primary/50 text-sm text-center py-4">Loading patients...</p>
+    </div>
+  </div>
+  <!-- Right: Main Content -->
+  <div class="flex-1 flex flex-col gap-6">
+    <!-- Stats Row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="glass rounded-2xl p-4">
+        <p class="text-primary/50 text-xs uppercase tracking-widest">Total Patients</p>
+        <p class="text-white text-3xl font-black" id="total_patients">--</p>
+      </div>
+      <div class="glass rounded-2xl p-4">
+        <p class="text-red-400/70 text-xs uppercase tracking-widest">Critical</p>
+        <p class="text-red-400 text-3xl font-black" id="critical_count">--</p>
+      </div>
+      <div class="glass rounded-2xl p-4">
+        <p class="text-orange-400/70 text-xs uppercase tracking-widest">High Risk</p>
+        <p class="text-orange-400 text-3xl font-black" id="high_count">--</p>
+      </div>
+      <div class="glass rounded-2xl p-4">
+        <p class="text-green-400/70 text-xs uppercase tracking-widest">Stable</p>
+        <p class="text-green-400 text-3xl font-black" id="stable_count">--</p>
+      </div>
+    </div>
+    <!-- Add Patient / Test Form -->
+    <div id="add_patient_form" class="hidden glass rounded-2xl p-6">
+      <h3 class="text-primary font-bold text-lg mb-4">📋 Record Health Test</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div><label class="text-primary/70 text-xs uppercase">Patient Jeevan ID</label>
+          <input id="test_patient_id" class="w-full bg-black/30 border border-primary/30 rounded-xl text-white p-3 mt-1 placeholder:text-slate-500" placeholder="PAT-1234" type="text"/></div>
+        <div><label class="text-primary/70 text-xs uppercase">BP Systolic</label>
+          <input id="test_bp_sys" class="w-full bg-black/30 border border-primary/30 rounded-xl text-white p-3 mt-1" placeholder="120" type="number"/></div>
+        <div><label class="text-primary/70 text-xs uppercase">BP Diastolic</label>
+          <input id="test_bp_dia" class="w-full bg-black/30 border border-primary/30 rounded-xl text-white p-3 mt-1" placeholder="80" type="number"/></div>
+        <div><label class="text-primary/70 text-xs uppercase">Blood Sugar (mg/dL)</label>
+          <input id="test_sugar" class="w-full bg-black/30 border border-primary/30 rounded-xl text-white p-3 mt-1" placeholder="110" type="number"/></div>
+        <div><label class="text-primary/70 text-xs uppercase">Oxygen (%)</label>
+          <input id="test_oxygen" class="w-full bg-black/30 border border-primary/30 rounded-xl text-white p-3 mt-1" placeholder="98" type="number"/></div>
+        <div><label class="text-primary/70 text-xs uppercase">Pulse (BPM)</label>
+          <input id="test_pulse" class="w-full bg-black/30 border border-primary/30 rounded-xl text-white p-3 mt-1" placeholder="72" type="number"/></div>
+        <div><label class="text-primary/70 text-xs uppercase">Temperature (°F)</label>
+          <input id="test_temp" class="w-full bg-black/30 border border-primary/30 rounded-xl text-white p-3 mt-1" placeholder="98.6" type="number" step="0.1"/></div>
+        <div><label class="text-primary/70 text-xs uppercase">Age</label>
+          <input id="test_age" class="w-full bg-black/30 border border-primary/30 rounded-xl text-white p-3 mt-1" placeholder="45" type="number"/></div>
+        <div><label class="text-primary/70 text-xs uppercase">Symptoms</label>
+          <input id="test_symptoms" class="w-full bg-black/30 border border-primary/30 rounded-xl text-white p-3 mt-1" placeholder="headache, fatigue" type="text"/></div>
+      </div>
+      <div id="test_msg" class="hidden p-4 rounded-xl text-sm font-bold mb-4"></div>
+      <div class="flex gap-3">
+        <button onclick="submitHealthTest()" class="flex-1 bg-gradient-to-r from-primary to-[#0E4040] text-[#020818] font-black py-3 rounded-xl flex items-center justify-center gap-2">
+          <span id="test_btn">🤖 Calculate Risk & Save</span>
+        </button>
+        <button onclick="hideAddPatient()" class="px-6 bg-slate-800 text-white py-3 rounded-xl">Cancel</button>
+      </div>
+    </div>
+    <!-- Result Display -->
+    <div id="risk_result" class="hidden glass rounded-2xl p-6">
+      <h3 class="text-primary font-bold text-lg mb-4">🎯 AI Risk Analysis Result</h3>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-black/30 p-4 rounded-xl text-center">
+          <p class="text-slate-400 text-xs">CRS Score</p>
+          <p class="text-white text-3xl font-black" id="res_crs">--</p>
+        </div>
+        <div class="bg-black/30 p-4 rounded-xl text-center">
+          <p class="text-slate-400 text-xs">Risk Level</p>
+          <p class="text-3xl font-black" id="res_level">--</p>
+        </div>
+        <div class="bg-black/30 p-4 rounded-xl text-center">
+          <p class="text-slate-400 text-xs">RVI</p>
+          <p class="text-white text-3xl font-black" id="res_rvi">--</p>
+        </div>
+        <div class="bg-black/30 p-4 rounded-xl text-center">
+          <p class="text-slate-400 text-xs">See Doctor?</p>
+          <p class="text-3xl font-black" id="res_doctor">--</p>
+        </div>
+      </div>
+      <div class="mt-4 bg-black/30 p-4 rounded-xl">
+        <p class="text-primary/70 text-xs mb-1">Hindi Advice</p>
+        <p class="text-white" id="res_hindi">--</p>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+<script>
+function showAddPatient() { document.getElementById('add_patient_form').classList.remove('hidden'); }
+function hideAddPatient() { document.getElementById('add_patient_form').classList.add('hidden'); }
+
+async function submitHealthTest() {
+  const msg = document.getElementById('test_msg');
+  const btn = document.getElementById('test_btn');
+  const vitals = {
+    patient_id: document.getElementById('test_patient_id').value.trim(),
+    bp_systolic: parseInt(document.getElementById('test_bp_sys').value)||120,
+    bp_diastolic: parseInt(document.getElementById('test_bp_dia').value)||80,
+    blood_sugar: parseInt(document.getElementById('test_sugar').value)||100,
+    oxygen_level: parseInt(document.getElementById('test_oxygen').value)||98,
+    pulse_rate: parseInt(document.getElementById('test_pulse').value)||72,
+    temperature: parseFloat(document.getElementById('test_temp').value)||98.6,
+    age: parseInt(document.getElementById('test_age').value)||40,
+    symptoms: document.getElementById('test_symptoms').value||'none'
+  };
+  if (!vitals.patient_id) {
+    msg.className='p-4 rounded-xl text-sm font-bold bg-red-500/20 text-red-400';
+    msg.textContent='⚠️ Please enter Patient Jeevan ID!'; return;
+  }
+  btn.textContent='🤖 Calculating AI Risk...';
+  msg.className='p-4 rounded-xl text-sm font-bold bg-blue-500/20 text-blue-400';
+  msg.textContent='Sending vitals to Gemini AI...';
+  try {
+    const user = getUser();
+    const risk = await calcRisk(vitals);
+    await sb.post('health_tests',{...vitals, risk_score:risk.crs, risk_level:risk.risk_level,
+      rvi:risk.rvi, advice_hindi:risk.advice_hindi, recorded_by:user?.jeevan_id});
+    await sb.patch('patients',`jeevan_id=eq.${vitals.patient_id}`,{risk_score:risk.crs, risk_level:risk.risk_level});
+    
+    // Show result
+    document.getElementById('res_crs').textContent = risk.crs;
+    document.getElementById('res_level').textContent = risk.risk_level;
+    document.getElementById('res_level').className = 'text-3xl font-black ' + 
+      (risk.risk_level==='CRITICAL'?'text-red-400':risk.risk_level==='HIGH'?'text-orange-400':risk.risk_level==='MEDIUM'?'text-yellow-400':'text-green-400');
+    document.getElementById('res_rvi').textContent = risk.rvi?.toFixed(1)||'0';
+    document.getElementById('res_doctor').textContent = risk.see_doctor?'⚠️ YES':'✅ NO';
+    document.getElementById('res_hindi').textContent = risk.advice_hindi;
+    document.getElementById('risk_result').classList.remove('hidden');
+    
+    msg.className='p-4 rounded-xl text-sm font-bold bg-green-500/20 text-green-400';
+    msg.textContent=`✅ Saved! CRS: ${risk.crs} | Level: ${risk.risk_level}`;
+    btn.textContent='🤖 Calculate Risk & Save';
+    
+    if (risk.emergency) {
+      localStorage.setItem('current_alert',JSON.stringify({patient_name:vitals.patient_id, patient_id:vitals.patient_id}));
+      setTimeout(() => go.alert(), 2000);
+    }
+    loadPatients();
+  } catch(e) {
+    msg.className='p-4 rounded-xl text-sm font-bold bg-red-500/20 text-red-400';
+    msg.textContent='❌ Error: '+e.message; btn.textContent='🤖 Calculate Risk & Save';
+  }
+}
+
+async function loadPatients() {
+  const user = getUser();
+  if (!user) { go.ashaLogin(); return; }
+  document.getElementById('asha_dash_name').textContent = user.full_name || user.jeevan_id;
+  try {
+    const patients = await sb.get('patients','order=risk_score.desc&select=*');
+    const list = document.getElementById('patient_list');
+    if (!patients || patients.length===0) {
+      list.innerHTML='<p class="text-primary/50 text-sm text-center py-4">No patients yet.<br>Add your first patient!</p>'; return;
+    }
+    document.getElementById('total_patients').textContent = patients.length;
+    document.getElementById('critical_count').textContent = patients.filter(p=>p.risk_level==='CRITICAL').length;
+    document.getElementById('high_count').textContent = patients.filter(p=>p.risk_level==='HIGH').length;
+    document.getElementById('stable_count').textContent = patients.filter(p=>p.risk_level==='LOW'||p.risk_level==='MEDIUM').length;
+    const colors={CRITICAL:'border-red-500 bg-red-500/10',HIGH:'border-orange-500 bg-orange-500/10',MEDIUM:'border-yellow-500 bg-yellow-500/10',LOW:'border-green-500 bg-green-500/10'};
+    const dots={CRITICAL:'🔴',HIGH:'🟠',MEDIUM:'🟡',LOW:'🟢'};
+    list.innerHTML = patients.map(p=>`
+      <div class="p-3 rounded-xl border ${colors[p.risk_level||'LOW']} cursor-pointer hover:brightness-110">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-white text-sm font-bold">${p.full_name||'Unknown'}</p>
+            <p class="text-slate-400 text-xs">${p.jeevan_id}</p>
+          </div>
+          <div class="text-right">
+            <p class="text-white font-black">${dots[p.risk_level||'LOW']} ${p.risk_score||0}</p>
+            <p class="text-slate-400 text-xs">${p.risk_level||'LOW'}</p>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch(e) { console.log('Error loading patients:', e); }
+}
+
+document.addEventListener('DOMContentLoaded', loadPatients);
+
+// ════════════════════════════════════════════
+//   JEEVAN AI — SHARED API + NAVIGATION
+//   Paste this block inside <script> tags
+//   at the bottom of EVERY HTML page
+// ════════════════════════════════════════════
+
+const SUPABASE_URL = "https://dsvbnrhsawfoiqwjnskb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzdmJucmhzYXdmb2lxd2puc2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MTE0MTYsImV4cCI6MjA4ODk4NzQxNn0.JE7I1MUp51ubUunPlsgRr2V8Rq-7LLQ6Qp5gw05zl4w";   // ← Settings → API Keys → anon public
+const GEMINI_KEY   = "AIzaSyC5LOL5e7Ic4Z5UGGIlMloh_4vA7MfxIrA"; // ← aistudio.google.com
+
+// ── PAGE PATHS ────────────────────────────
+const PAGES = {
+  home:           '../jeevan_ai_advanced_front_page/code.html',
+  roleSelect:     '../enhanced_role_selection/code.html',
+  registerRole:   '../register_role_select/code.html',
+  patientReg:     '../patient_register_form/code.html',
+  ashaReg:        '../asha_registration_with_otp_field/code.html',
+  doctorReg:      '../doctor_register_form/code.html',
+  patientLogin:   '../patient_login/code.html',
+  ashaLogin:      '../asha_worker_login/code.html',
+  doctorLogin:    '../doctor_login_animated_refinement/code.html',
+  patientDash:    '../patient_dashboard_multilingual_toggles/code.html',
+  ashaDash:       '../asha_dashboard_multilingual_toggles/code.html',
+  doctorDash:     '../doctor_dashboard_multilingual_toggles/code.html',
+  success:        '../success_screen/code.html',
+  alert:          '../alert_screen/code.html',
+};
+
+// ── LOADING OVERLAY HTML (inject once) ───
+function injectLoader() {
+  if (document.getElementById('jeevan-loader')) return;
+  const el = document.createElement('div');
+  el.id = 'jeevan-loader';
+  el.innerHTML = `
+    <style>
+      #jeevan-loader {
+        display:none; position:fixed; inset:0;
+        background:rgba(2,8,24,0.97); z-index:99999;
+        flex-direction:column; align-items:center;
+        justify-content:center; gap:20px; font-family:'Public Sans',sans-serif;
+      }
+      #jeevan-loader .jl-title {
+        background:linear-gradient(to right,#F492F0,#2EF2E2);
+        -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        font-size:24px; font-weight:900; letter-spacing:4px;
+      }
+      #jeevan-loader .jl-msg {
+        color:white; font-size:15px; font-weight:600; letter-spacing:2px;
+      }
+      #jeevan-loader .jl-dot { animation:jlBlink 1.5s infinite; }
+      #jeevan-loader .jl-dot:nth-child(2){animation-delay:.3s}
+      #jeevan-loader .jl-dot:nth-child(3){animation-delay:.6s}
+      #jeevan-loader .jl-track {
+        position:relative; width:220px; height:36px;
+        background:#1a1a1a; border-radius:18px; overflow:hidden;
+      }
+      #jeevan-loader .jl-fill {
+        position:absolute; top:3px; left:3px;
+        height:calc(100% - 6px); width:0%;
+        background:linear-gradient(90deg,#2EF2E2,#7B2FFF,#F492F0);
+        border-radius:15px;
+        animation:jlFill 2.2s ease-out forwards, jlHue 2.2s linear infinite;
+        box-shadow:0 0 12px rgba(46,242,226,.4);
+      }
+      #jeevan-loader .jl-sub {
+        color:rgba(255,255,255,.3); font-size:11px; letter-spacing:3px; text-transform:uppercase;
+      }
+      @keyframes jlBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
+      @keyframes jlFill{0%{width:0}30%{width:30%}70%{width:70%}100%{width:calc(100% - 6px)}}
+      @keyframes jlHue{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
+    </style>
+    <div class="jl-title">JEEVAN AI</div>
+    <div class="jl-msg" id="jl-msg">Loading<span class="jl-dot">.</span><span class="jl-dot">.</span><span class="jl-dot">.</span></div>
+    <div class="jl-track"><div class="jl-fill" id="jl-fill"></div></div>
+    <div class="jl-sub" id="jl-sub">NEURAL NETWORK</div>
+  `;
+  document.body.appendChild(el);
+}
+
+function showLoader(msg, sub, dest, delay) {
+  injectLoader();
+  document.getElementById('jl-msg').innerHTML = (msg||'Loading') +
+    '<span class="jl-dot">.</span><span class="jl-dot">.</span><span class="jl-dot">.</span>';
+  if (sub) document.getElementById('jl-sub').textContent = sub;
+  const fill = document.getElementById('jl-fill');
+  fill.style.animation = 'none'; fill.offsetHeight;
+  fill.style.animation = 'jlFill 2.2s ease-out forwards, jlHue 2.2s linear infinite';
+  document.getElementById('jeevan-loader').style.display = 'flex';
+  if (dest) setTimeout(() => { window.location.href = dest; }, delay || 2200);
+}
+
+// ── NAVIGATION HELPERS ────────────────────
+const go = {
+  home:        () => showLoader('Going Home',        'JEEVAN AI',            PAGES.home),
+  register:    () => showLoader('Loading Register',  'SELECT YOUR ROLE',     PAGES.roleSelect),
+  ashaReg:     () => showLoader('ASHA Registration', 'PREPARING FORM',       PAGES.ashaReg),
+  doctorReg:   () => showLoader('Doctor Portal',     'PREPARING FORM',       PAGES.doctorReg),
+  patientReg:  () => showLoader('Patient Portal',    'PREPARING FORM',       PAGES.patientReg),
+  ashaLogin:   () => showLoader('ASHA Login',        'AUTHENTICATING',       PAGES.ashaLogin),
+  doctorLogin: () => showLoader('Doctor Login',      'AUTHENTICATING',       PAGES.doctorLogin),
+  patientLogin:() => showLoader('Patient Login',     'AUTHENTICATING',       PAGES.patientLogin),
+  ashaDash:    () => showLoader('ASHA Dashboard',    'LOADING YOUR DATA',    PAGES.ashaDash),
+  doctorDash:  () => showLoader('Doctor Dashboard',  'LOADING YOUR DATA',    PAGES.doctorDash),
+  patientDash: () => showLoader('Patient Dashboard', 'LOADING YOUR DATA',    PAGES.patientDash),
+  success:     () => showLoader('Success!',          'SAVING YOUR PROFILE',  PAGES.success),
+  alert:       () => showLoader('EMERGENCY',         'ALERTING CONTACTS',    PAGES.alert),
+};
+
+// ── SESSION HELPERS ───────────────────────
+function getUser()    { try { return JSON.parse(localStorage.getItem('jeevan_user')); } catch(e) { return null; } }
+function setUser(u)   { localStorage.setItem('jeevan_user', JSON.stringify(u)); }
+function clearUser()  { localStorage.removeItem('jeevan_user'); }
+function logout()     { clearUser(); go.home(); }
+function generateId(role) {
+  const n = Math.floor(1000 + Math.random() * 9000);
+  return role==='patient'?`PAT-${n}`:role==='asha'?`ASH-${n}`:`DOC-${n}`;
+}
+
+// ── SUPABASE HELPERS ──────────────────────
+const sb = {
+  headers: () => ({
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Prefer': 'return=representation'
+  }),
+  post: async (table, body) => {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method:'POST', headers: sb.headers(), body: JSON.stringify(body)
+    });
+    return r.json();
+  },
+  get: async (table, query) => {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    return r.json();
+  },
+  patch: async (table, filter, body) => {
+    await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
+      method:'PATCH', headers: sb.headers(), body: JSON.stringify(body)
+    });
+  }
+};
+
+// ── REGISTER FUNCTIONS ────────────────────
+async function registerPatient(d) {
+  const jeevan_id = generateId('patient');
+  await sb.post('patients', { jeevan_id, full_name:`${d.first_name} ${d.last_name}`,
+    phone:d.phone, age:parseInt(d.age)||0, gender:d.gender, village:d.village||'',
+    district:d.district||'', blood_group:d.blood_group||'', role:'patient',
+    password:d.password||'1234', risk_score:0, risk_level:'LOW' });
+  setUser({ jeevan_id, full_name:`${d.first_name} ${d.last_name}`, role:'patient' });
+  return jeevan_id;
+}
+
+async function registerAsha(d) {
+  const jeevan_id = generateId('asha');
+  await sb.post('asha_workers', { jeevan_id, full_name:d.full_name, phone:d.phone,
+    username:d.username||'', email:d.email||'', password:d.password||'1234',
+    village:d.village||'', district:d.district||'', otp_verified:false });
+  setUser({ jeevan_id, full_name:d.full_name, role:'asha' });
+  return jeevan_id;
+}
+
+async function registerDoctor(d) {
+  const jeevan_id = generateId('doctor');
+  await sb.post('doctors', { jeevan_id, full_name:d.full_name,
+    license_number:d.license_number||'', email:d.email||'',
+    specialization:d.specialization||'', hospital_name:d.hospital||'',
+    password:d.password||'1234' });
+  setUser({ jeevan_id, full_name:d.full_name, role:'doctor' });
+  return jeevan_id;
+}
+
+// ── LOGIN FUNCTION ────────────────────────
+async function loginUser(jeevan_id, password, role) {
+  const table = role==='patient'?'patients':role==='asha'?'asha_workers':'doctors';
+  const data = await sb.get(table, `jeevan_id=eq.${jeevan_id}&password=eq.${password}&select=*`);
+  if (data && data.length > 0) {
+    setUser({...data[0], role});
+    return { success:true, user:data[0] };
+  }
+  return { success:false };
+}
+
+// ── GEMINI AI RISK ────────────────────────
+async function calcRisk(v) {
+  const r = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+    { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ contents:[{ parts:[{ text:
+        `You are JEEVAN AI. Rural India patient vitals:
+BP:${v.bp_systolic}/${v.bp_diastolic} Sugar:${v.blood_sugar} O2:${v.oxygen_level}% Pulse:${v.pulse_rate} Temp:${v.temperature}F Age:${v.age} Symptoms:${v.symptoms||'none'}
+Reply ONLY valid JSON no markdown:
+{"crs":0-100,"risk_level":"LOW/MEDIUM/HIGH/CRITICAL","rvi":0.0,"advice_hindi":"2 lines","advice_english":"2 lines","see_doctor":true/false,"emergency":true/false}`
+      }]}]})
+    });
+  const data = await r.json();
+  const txt = data.candidates[0].content.parts[0].text.replace(/```json|```/g,'').trim();
+  return JSON.parse(txt);
+}
+
+// ── LIVE TIMESTAMP ────────────────────────
+function startClock(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const tick = () => { el.textContent = new Date().toISOString().replace('T',' // ').replace(/\.\d+Z/,' UTC'); };
+  tick(); setInterval(tick,1000);
+}
+
+// AUTO START CLOCK IF ELEMENT EXISTS
+document.addEventListener('DOMContentLoaded', () => startClock('timestamp'));
+</script></body></html>

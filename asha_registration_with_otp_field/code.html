@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/><meta content="width=device-width,initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#2EF2E2","background-dark":"#020818"},fontFamily:{display:["Public Sans"]}}}}</script>
+<style>
+.diagonal-gradient{background:linear-gradient(135deg,#020818 0%,#0E4040 50%,#020818 100%)}
+.glass-card{background:rgba(14,64,64,.3);backdrop-filter:blur(20px);border:2px solid;border-image-source:linear-gradient(180deg,#2EF2E2 0%,rgba(46,242,226,0) 50%,#2EF2E2 100%);border-image-slice:1}
+.btn-gradient{background:linear-gradient(to right,#2EF2E2,#0F6B6B);transition:all .3s;box-shadow:0 0 15px rgba(46,242,226,.4)}
+.btn-gradient:hover{background:linear-gradient(to right,#A4F000,#2EF2E2);box-shadow:0 0 25px rgba(164,240,0,.6)}
+.particle-overlay{background-image:radial-gradient(circle,#2EF2E2 1px,transparent 1px);background-size:30px 30px;opacity:.1}
+</style>
+</head>
+<body class="font-display">
+<div class="relative flex min-h-screen flex-col diagonal-gradient overflow-x-hidden">
+<div class="absolute inset-0 particle-overlay pointer-events-none"></div>
+<header class="flex items-center justify-between border-b border-primary/20 px-6 lg:px-40 py-5 z-10 relative">
+  <div class="flex items-center gap-4 text-primary cursor-pointer" onclick="go.home()">
+    <span class="material-symbols-outlined text-4xl">hexagon</span>
+    <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#2EF2E2] to-[#0F2F2F]">JEEVAN AI</h2>
+  </div>
+  <button onclick="go.register()" class="bg-[#0E4040]/50 text-primary border border-primary/30 px-4 py-2 rounded-xl text-xs font-bold hover:bg-[#0E4040]/80 transition-all">
+    ← BACK
+  </button>
+</header>
+<main class="flex flex-1 justify-center items-center py-12 px-4 z-10 relative">
+<div class="w-full max-w-[520px] glass-card p-8 md:p-12 rounded-xl">
+  <h1 class="text-primary text-4xl font-black uppercase mb-2">ASHA Registration</h1>
+  <p class="text-primary/70 text-base mb-8">Create your secure ASHA worker identity</p>
+  <div class="space-y-6">
+    <div class="flex flex-col gap-2">
+      <label class="text-primary text-xs font-bold uppercase tracking-widest">Full Name</label>
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/50">person</span>
+        <input id="asha_name" class="flex w-full rounded-xl text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-primary/30 bg-black/20 h-14 pl-12 pr-4 placeholder:text-primary/30 text-base transition-all" placeholder="Enter your legal name" type="text"/>
+      </div>
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="text-primary text-xs font-bold uppercase tracking-widest">Mobile Number</label>
+      <div class="relative flex gap-2">
+        <div class="relative flex-1">
+          <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/50">call</span>
+          <input id="asha_phone" class="flex w-full rounded-xl text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-primary/30 bg-black/20 h-14 pl-12 pr-4 placeholder:text-primary/30 text-base transition-all" placeholder="+91 XXXXX XXXXX" type="tel"/>
+        </div>
+      </div>
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="text-primary text-xs font-bold uppercase tracking-widest">ASHA Username</label>
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/50">fingerprint</span>
+        <input id="asha_username" class="flex w-full rounded-xl text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-primary/30 bg-black/20 h-14 pl-12 pr-4 placeholder:text-primary/30 text-base transition-all" placeholder="asha.meena.888" type="text"/>
+      </div>
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="text-primary text-xs font-bold uppercase tracking-widest">Email Address</label>
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/50">alternate_email</span>
+        <input id="asha_email" class="flex w-full rounded-xl text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-primary/30 bg-black/20 h-14 pl-12 pr-4 placeholder:text-primary/30 text-base transition-all" placeholder="email@asha-network.io" type="email"/>
+      </div>
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="text-primary text-xs font-bold uppercase tracking-widest">Password</label>
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/50">lock</span>
+        <input id="asha_password" class="flex w-full rounded-xl text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-primary/30 bg-black/20 h-14 pl-12 pr-4 placeholder:text-primary/30 text-base transition-all" placeholder="••••••••" type="password"/>
+      </div>
+    </div>
+    <div id="asha_msg" class="hidden p-4 rounded-xl text-sm font-bold"></div>
+    <button onclick="handleAshaRegister()" class="w-full btn-gradient text-[#020818] h-14 rounded-xl text-base font-black uppercase tracking-widest flex items-center justify-center gap-2">
+      <span id="asha_btn">Complete Registration</span>
+      <span class="material-symbols-outlined">arrow_forward</span>
+    </button>
+    <p class="text-center text-primary/50 text-sm">Already registered? 
+      <span onclick="go.ashaLogin()" class="text-primary font-bold cursor-pointer hover:underline">LOGIN HERE</span></p>
+  </div>
+</div>
+</main>
+</div>
+<script>
+async function handleAshaRegister() {
+  const msg = document.getElementById('asha_msg');
+  const btn = document.getElementById('asha_btn');
+  const d = {
+    full_name: document.getElementById('asha_name').value.trim(),
+    phone: document.getElementById('asha_phone').value.trim(),
+    username: document.getElementById('asha_username').value.trim(),
+    email: document.getElementById('asha_email').value.trim(),
+    password: document.getElementById('asha_password').value.trim()
+  };
+  if (!d.full_name || !d.phone) {
+    msg.className='p-4 rounded-xl text-sm font-bold bg-red-500/20 text-red-400';
+    msg.textContent='⚠️ Please fill Name and Phone!'; return;
+  }
+  btn.textContent='Creating...';
+  try {
+    const jeevan_id = await registerAsha(d);
+    msg.className='p-4 rounded-xl text-sm font-bold bg-green-500/20 text-green-400';
+    msg.textContent=`✅ Welcome ASHA Worker! Your ID: ${jeevan_id} — Save this!`;
+    localStorage.setItem('new_jeevan_id', jeevan_id);
+    setTimeout(() => go.success(), 1500);
+  } catch(e) {
+    msg.className='p-4 rounded-xl text-sm font-bold bg-red-500/20 text-red-400';
+    msg.textContent='❌ Error: '+e.message; btn.textContent='Complete Registration';
+  }
+}
+
+// ════════════════════════════════════════════
+//   JEEVAN AI — SHARED API + NAVIGATION
+//   Paste this block inside <script> tags
+//   at the bottom of EVERY HTML page
+// ════════════════════════════════════════════
+
+const SUPABASE_URL = "https://dsvbnrhsawfoiqwjnskb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzdmJucmhzYXdmb2lxd2puc2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MTE0MTYsImV4cCI6MjA4ODk4NzQxNn0.JE7I1MUp51ubUunPlsgRr2V8Rq-7LLQ6Qp5gw05zl4w";   // ← Settings → API Keys → anon public
+const GEMINI_KEY   = "AIzaSyC5LOL5e7Ic4Z5UGGIlMloh_4vA7MfxIrA"; // ← aistudio.google.com
+
+// ── PAGE PATHS ────────────────────────────
+const PAGES = {
+  home:           '../jeevan_ai_advanced_front_page/code.html',
+  roleSelect:     '../enhanced_role_selection/code.html',
+  registerRole:   '../register_role_select/code.html',
+  patientReg:     '../patient_register_form/code.html',
+  ashaReg:        '../asha_registration_with_otp_field/code.html',
+  doctorReg:      '../doctor_register_form/code.html',
+  patientLogin:   '../patient_login/code.html',
+  ashaLogin:      '../asha_worker_login/code.html',
+  doctorLogin:    '../doctor_login_animated_refinement/code.html',
+  patientDash:    '../patient_dashboard_multilingual_toggles/code.html',
+  ashaDash:       '../asha_dashboard_multilingual_toggles/code.html',
+  doctorDash:     '../doctor_dashboard_multilingual_toggles/code.html',
+  success:        '../success_screen/code.html',
+  alert:          '../alert_screen/code.html',
+};
+
+// ── LOADING OVERLAY HTML (inject once) ───
+function injectLoader() {
+  if (document.getElementById('jeevan-loader')) return;
+  const el = document.createElement('div');
+  el.id = 'jeevan-loader';
+  el.innerHTML = `
+    <style>
+      #jeevan-loader {
+        display:none; position:fixed; inset:0;
+        background:rgba(2,8,24,0.97); z-index:99999;
+        flex-direction:column; align-items:center;
+        justify-content:center; gap:20px; font-family:'Public Sans',sans-serif;
+      }
+      #jeevan-loader .jl-title {
+        background:linear-gradient(to right,#F492F0,#2EF2E2);
+        -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+        font-size:24px; font-weight:900; letter-spacing:4px;
+      }
+      #jeevan-loader .jl-msg {
+        color:white; font-size:15px; font-weight:600; letter-spacing:2px;
+      }
+      #jeevan-loader .jl-dot { animation:jlBlink 1.5s infinite; }
+      #jeevan-loader .jl-dot:nth-child(2){animation-delay:.3s}
+      #jeevan-loader .jl-dot:nth-child(3){animation-delay:.6s}
+      #jeevan-loader .jl-track {
+        position:relative; width:220px; height:36px;
+        background:#1a1a1a; border-radius:18px; overflow:hidden;
+      }
+      #jeevan-loader .jl-fill {
+        position:absolute; top:3px; left:3px;
+        height:calc(100% - 6px); width:0%;
+        background:linear-gradient(90deg,#2EF2E2,#7B2FFF,#F492F0);
+        border-radius:15px;
+        animation:jlFill 2.2s ease-out forwards, jlHue 2.2s linear infinite;
+        box-shadow:0 0 12px rgba(46,242,226,.4);
+      }
+      #jeevan-loader .jl-sub {
+        color:rgba(255,255,255,.3); font-size:11px; letter-spacing:3px; text-transform:uppercase;
+      }
+      @keyframes jlBlink{0%,49%{opacity:1}50%,100%{opacity:0}}
+      @keyframes jlFill{0%{width:0}30%{width:30%}70%{width:70%}100%{width:calc(100% - 6px)}}
+      @keyframes jlHue{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
+    </style>
+    <div class="jl-title">JEEVAN AI</div>
+    <div class="jl-msg" id="jl-msg">Loading<span class="jl-dot">.</span><span class="jl-dot">.</span><span class="jl-dot">.</span></div>
+    <div class="jl-track"><div class="jl-fill" id="jl-fill"></div></div>
+    <div class="jl-sub" id="jl-sub">NEURAL NETWORK</div>
+  `;
+  document.body.appendChild(el);
+}
+
+function showLoader(msg, sub, dest, delay) {
+  injectLoader();
+  document.getElementById('jl-msg').innerHTML = (msg||'Loading') +
+    '<span class="jl-dot">.</span><span class="jl-dot">.</span><span class="jl-dot">.</span>';
+  if (sub) document.getElementById('jl-sub').textContent = sub;
+  const fill = document.getElementById('jl-fill');
+  fill.style.animation = 'none'; fill.offsetHeight;
+  fill.style.animation = 'jlFill 2.2s ease-out forwards, jlHue 2.2s linear infinite';
+  document.getElementById('jeevan-loader').style.display = 'flex';
+  if (dest) setTimeout(() => { window.location.href = dest; }, delay || 2200);
+}
+
+// ── NAVIGATION HELPERS ────────────────────
+const go = {
+  home:        () => showLoader('Going Home',        'JEEVAN AI',            PAGES.home),
+  register:    () => showLoader('Loading Register',  'SELECT YOUR ROLE',     PAGES.roleSelect),
+  ashaReg:     () => showLoader('ASHA Registration', 'PREPARING FORM',       PAGES.ashaReg),
+  doctorReg:   () => showLoader('Doctor Portal',     'PREPARING FORM',       PAGES.doctorReg),
+  patientReg:  () => showLoader('Patient Portal',    'PREPARING FORM',       PAGES.patientReg),
+  ashaLogin:   () => showLoader('ASHA Login',        'AUTHENTICATING',       PAGES.ashaLogin),
+  doctorLogin: () => showLoader('Doctor Login',      'AUTHENTICATING',       PAGES.doctorLogin),
+  patientLogin:() => showLoader('Patient Login',     'AUTHENTICATING',       PAGES.patientLogin),
+  ashaDash:    () => showLoader('ASHA Dashboard',    'LOADING YOUR DATA',    PAGES.ashaDash),
+  doctorDash:  () => showLoader('Doctor Dashboard',  'LOADING YOUR DATA',    PAGES.doctorDash),
+  patientDash: () => showLoader('Patient Dashboard', 'LOADING YOUR DATA',    PAGES.patientDash),
+  success:     () => showLoader('Success!',          'SAVING YOUR PROFILE',  PAGES.success),
+  alert:       () => showLoader('EMERGENCY',         'ALERTING CONTACTS',    PAGES.alert),
+};
+
+// ── SESSION HELPERS ───────────────────────
+function getUser()    { try { return JSON.parse(localStorage.getItem('jeevan_user')); } catch(e) { return null; } }
+function setUser(u)   { localStorage.setItem('jeevan_user', JSON.stringify(u)); }
+function clearUser()  { localStorage.removeItem('jeevan_user'); }
+function logout()     { clearUser(); go.home(); }
+function generateId(role) {
+  const n = Math.floor(1000 + Math.random() * 9000);
+  return role==='patient'?`PAT-${n}`:role==='asha'?`ASH-${n}`:`DOC-${n}`;
+}
+
+// ── SUPABASE HELPERS ──────────────────────
+const sb = {
+  headers: () => ({
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Prefer': 'return=representation'
+  }),
+  post: async (table, body) => {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method:'POST', headers: sb.headers(), body: JSON.stringify(body)
+    });
+    return r.json();
+  },
+  get: async (table, query) => {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${query}`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    return r.json();
+  },
+  patch: async (table, filter, body) => {
+    await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, {
+      method:'PATCH', headers: sb.headers(), body: JSON.stringify(body)
+    });
+  }
+};
+
+// ── REGISTER FUNCTIONS ────────────────────
+async function registerPatient(d) {
+  const jeevan_id = generateId('patient');
+  await sb.post('patients', { jeevan_id, full_name:`${d.first_name} ${d.last_name}`,
+    phone:d.phone, age:parseInt(d.age)||0, gender:d.gender, village:d.village||'',
+    district:d.district||'', blood_group:d.blood_group||'', role:'patient',
+    password:d.password||'1234', risk_score:0, risk_level:'LOW' });
+  setUser({ jeevan_id, full_name:`${d.first_name} ${d.last_name}`, role:'patient' });
+  return jeevan_id;
+}
+
+async function registerAsha(d) {
+  const jeevan_id = generateId('asha');
+  await sb.post('asha_workers', { jeevan_id, full_name:d.full_name, phone:d.phone,
+    username:d.username||'', email:d.email||'', password:d.password||'1234',
+    village:d.village||'', district:d.district||'', otp_verified:false });
+  setUser({ jeevan_id, full_name:d.full_name, role:'asha' });
+  return jeevan_id;
+}
+
+async function registerDoctor(d) {
+  const jeevan_id = generateId('doctor');
+  await sb.post('doctors', { jeevan_id, full_name:d.full_name,
+    license_number:d.license_number||'', email:d.email||'',
+    specialization:d.specialization||'', hospital_name:d.hospital||'',
+    password:d.password||'1234' });
+  setUser({ jeevan_id, full_name:d.full_name, role:'doctor' });
+  return jeevan_id;
+}
+
+// ── LOGIN FUNCTION ────────────────────────
+async function loginUser(jeevan_id, password, role) {
+  const table = role==='patient'?'patients':role==='asha'?'asha_workers':'doctors';
+  const data = await sb.get(table, `jeevan_id=eq.${jeevan_id}&password=eq.${password}&select=*`);
+  if (data && data.length > 0) {
+    setUser({...data[0], role});
+    return { success:true, user:data[0] };
+  }
+  return { success:false };
+}
+
+// ── GEMINI AI RISK ────────────────────────
+async function calcRisk(v) {
+  const r = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+    { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ contents:[{ parts:[{ text:
+        `You are JEEVAN AI. Rural India patient vitals:
+BP:${v.bp_systolic}/${v.bp_diastolic} Sugar:${v.blood_sugar} O2:${v.oxygen_level}% Pulse:${v.pulse_rate} Temp:${v.temperature}F Age:${v.age} Symptoms:${v.symptoms||'none'}
+Reply ONLY valid JSON no markdown:
+{"crs":0-100,"risk_level":"LOW/MEDIUM/HIGH/CRITICAL","rvi":0.0,"advice_hindi":"2 lines","advice_english":"2 lines","see_doctor":true/false,"emergency":true/false}`
+      }]}]})
+    });
+  const data = await r.json();
+  const txt = data.candidates[0].content.parts[0].text.replace(/```json|```/g,'').trim();
+  return JSON.parse(txt);
+}
+
+// ── LIVE TIMESTAMP ────────────────────────
+function startClock(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const tick = () => { el.textContent = new Date().toISOString().replace('T',' // ').replace(/\.\d+Z/,' UTC'); };
+  tick(); setInterval(tick,1000);
+}
+
+// AUTO START CLOCK IF ELEMENT EXISTS
+document.addEventListener('DOMContentLoaded', () => startClock('timestamp'));
+</script></body></html>
